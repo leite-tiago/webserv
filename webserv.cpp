@@ -1,12 +1,22 @@
 #include "includes/webserv.hpp"
 
-static Settings* settings = Instance::Get<Settings>();
+// TODO: Implementar as classes Settings, Instance, HTTP::ServerManager, Utils
+// Por enquanto, comentando para permitir compilação
+// static Settings* settings = Instance::Get<Settings>();
 
 int	main(int ac, char **av, char **env)
 {
+	(void)ac;
+	(void)av;
+	(void)env;
+
+	std::cout << "Webserv iniciando..." << std::endl;
+	std::cout << "Projeto base estruturado com sucesso!" << std::endl;
+
+	// TODO: Implementar lógica do servidor
+	/*
 	ac--;
 	av++;
-	(void)env;
 	if (!settings->isValid())
 		return 1;
 
@@ -21,4 +31,7 @@ int	main(int ac, char **av, char **env)
 		Utils::showException("Failed to load configuration file", e);
 		return 1;
 	}
+	*/
+
+	return 0;
 }

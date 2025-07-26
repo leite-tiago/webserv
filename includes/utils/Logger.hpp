@@ -47,7 +47,7 @@ namespace Logger {
 	 * @return: String de erro formatada com cor de destaque
 	 */
 	inline std::string errstr() {
-		return param(str::strerror(errno));
+		return param(std::strerror(errno));
 	}
 
 	/**
@@ -88,7 +88,7 @@ namespace Logger {
 				const std::string& header,
 				const std::string& color,
 				bool enabled = true
-			 )
+			 );
 
 			// Destrutor
 			~Stream();

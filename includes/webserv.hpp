@@ -1,11 +1,5 @@
 #pragma once
 
-// webserv manual includes
-#include "Yaml.hpp"
-#include "shared.hpp"
-#include "utils/Logger.hpp"
-
-
 // C++ standard library includes
 #include <iostream>
 #include <fstream>
@@ -23,3 +17,8 @@
 #include <sstream>
 #include <cstring>
 #include <cerrno>
+
+// webserv manual includes
+#include "Yaml.hpp"
+#include "shared.hpp"
+#include "utils/Logger.hpp"
