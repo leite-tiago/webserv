@@ -1,11 +1,11 @@
 /**
  * Yaml.hpp
- * Basic YAML Implementation.
- * Implements Nodes and file parsing.
- * Has support for scalars, nulls, sequences, and maps.
- * Based on the YAML 1.2 specification.
- * Class design based on https://github.com/jbeder/yaml-cpp
- * Has some basic test cases to ensure none of the features are broken.
+ * Implementação básica de YAML.
+ * Implementa Nodes e parsing de arquivos.
+ * Suporta escalares, nulos, sequências e mapas.
+ * Baseado na especificação YAML 1.2.
+ * Design da classe baseado em https://github.com/jbeder/yaml-cpp
+ * Possui alguns testes básicos para garantir que nenhuma funcionalidade esteja quebrada.
  */
 #pragma once
 

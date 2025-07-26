@@ -2,7 +2,7 @@
 
 // TODO: Implementar as classes Settings, Instance, HTTP::ServerManager, Utils
 // Por enquanto, comentando para permitir compilação
-// static Settings* settings = Instance::Get<Settings>();
+static Settings* settings = Instance::Get<Settings>();
 
 int	main(int ac, char **av, char **env)
 {
@@ -10,11 +10,10 @@ int	main(int ac, char **av, char **env)
 	(void)av;
 	(void)env;
 
-	std::cout << "Webserv iniciando..." << std::endl;
-	std::cout << "Projeto base estruturado com sucesso!" << std::endl;
+	std::cout << "Webserv iniciando..." << std::endl; //[DEBUG]
 
 	// TODO: Implementar lógica do servidor
-	/*
+
 	ac--;
 	av++;
 	if (!settings->isValid())
@@ -31,7 +30,7 @@ int	main(int ac, char **av, char **env)
 		Utils::showException("Failed to load configuration file", e);
 		return 1;
 	}
-	*/
+
 
 	return 0;
 }

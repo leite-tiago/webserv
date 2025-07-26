@@ -1,6 +1,6 @@
 /**
  * shared.hpp
- * Shared imports and std definitions.
+ * Compartilha importações e definições padrão.
 */
 #pragma once
 
