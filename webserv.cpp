@@ -2,7 +2,6 @@
 
 // TODO: Implementar as classes Settings, Instance, HTTP::ServerManager, Utils
 // Por enquanto, comentando para permitir compilação
-static Settings* settings = Instance::Get<Settings>();
 
 int	main(int ac, char **av, char **env)
 {
@@ -12,6 +11,9 @@ int	main(int ac, char **av, char **env)
 
 	std::cout << "Webserv iniciando..." << std::endl; //[DEBUG]
 
+	// Initialize settings inside main to avoid static initialization issues
+	Settings* settings = Instance::Get<Settings>();
+
 	// TODO: Implementar lógica do servidor
 
 	ac--;
@@ -20,10 +22,12 @@ int	main(int ac, char **av, char **env)
 		return 1;
 
 	//YAML::RunTests();
-	//HTTP::ServerManager* serverManager = Instance::Get<HTTP::ServerManager>();
+	HTTP::ServerManager* serverManager = Instance::Get<HTTP::ServerManager>();
 
 	try {
-		if (!serverManager->loadConfig(ac > 0 ? av[0] : settings->get<std::string>("misc.default_config_file")))
+		// Simplified: just use a default config file path for now
+		std::string configFile = (ac > 0) ? av[0] : "config/default.conf";
+		if (!serverManager->loadConfig(configFile))
 			return 1;
 	}
 	catch (const std::exception& e) {

@@ -17,9 +17,13 @@
 #include <sstream>
 #include <cstring>
 #include <cerrno>
+#include <cstdlib>
 
 // webserv manual includes
 #include "Yaml.hpp"
 #include "shared.hpp"
 #include "utils/Logger.hpp"
+#include "utils/Utils.hpp"
+#include "Instance.hpp"
+#include "http/ServerManager.hpp"
 #include "Settings.hpp"

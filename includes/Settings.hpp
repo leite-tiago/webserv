@@ -54,8 +54,8 @@ class Settings {
 		  if (
 			Utils::isInteger(key, true) &&
 			node->is<YAML::Types::Sequence>() &&
-			node->has(std::atoi(key.c_str())))
-			node = &node->get(std::atoi(key.c_str()));
+			node->has(atoi(key.c_str())))
+			node = &node->get(atoi(key.c_str()));
 		  else
 			// Acessa por chave string para mapas/objetos
 			node = &node->get(key);
