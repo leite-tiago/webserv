@@ -9,7 +9,7 @@
 #include <sstream>
 
 // Constructors
-Socket::Socket() 
+Socket::Socket()
 	: _fd(-1)
 	, _host("")
 	, _port(0)
@@ -69,7 +69,7 @@ bool Socket::bind(const std::string& host, int port) {
 
 	// Bind socket
 	if (::bind(_fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
-		Logger::error << "Failed to bind socket to " << host << ":" << port 
+		Logger::error << "Failed to bind socket to " << host << ":" << port
 		              << " - " << std::strerror(errno) << std::endl;
 		return false;
 	}
@@ -111,7 +111,7 @@ int Socket::accept(struct sockaddr_in& clientAddr) {
 		return -1;
 	}
 
-	Logger::debug << "Accepted connection from " << getHostString(clientAddr) 
+	Logger::debug << "Accepted connection from " << getHostString(clientAddr)
 	              << ":" << getPortNumber(clientAddr) << " (fd: " << clientFd << ")" << std::endl;
 	return clientFd;
 }
@@ -187,20 +187,20 @@ bool Socket::setReusePort() {
 }
 
 // Getters
-int Socket::getFd() const { 
-	return _fd; 
+int Socket::getFd() const {
+	return _fd;
 }
 
-const std::string& Socket::getHost() const { 
-	return _host; 
+const std::string& Socket::getHost() const {
+	return _host;
 }
 
-int Socket::getPort() const { 
-	return _port; 
+int Socket::getPort() const {
+	return _port;
 }
 
-bool Socket::isValid() const { 
-	return _valid; 
+bool Socket::isValid() const {
+	return _valid;
 }
 
 // Utils

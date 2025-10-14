@@ -20,7 +20,7 @@ namespace HTTP {
 		 * Constructor
 		 */
 		ServerManager();
-		
+
 		/**
 		 * Destructor
 		 */

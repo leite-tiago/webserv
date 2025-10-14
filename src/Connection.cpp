@@ -5,6 +5,7 @@
 #include "includes/Connection.hpp"
 #include "includes/Socket.hpp"
 #include "includes/Server.hpp"
+#include "includes/http/RequestHandler.hpp"
 #include "includes/utils/Logger.hpp"
 #include <unistd.h>
 #include <cstring>
@@ -23,8 +24,8 @@ Connection::Connection(int fd, const struct sockaddr_in& addr, const Server* ser
 	, _responseOffset(0)
 	, _keepAlive(false)
 	, _shouldClose(false) {
-	
-	Logger::info << "New connection from " << _clientHost << ":" << _clientPort 
+
+	Logger::info << "New connection from " << _clientHost << ":" << _clientPort
 	             << " (fd: " << _fd << ")" << std::endl;
 }
 
@@ -47,7 +48,7 @@ bool Connection::readRequest() {
 		if (errno == EWOULDBLOCK || errno == EAGAIN) {
 			return true; // Not an error, just no data yet
 		}
-		Logger::error << "Error reading from connection (fd: " << _fd << "): " 
+		Logger::error << "Error reading from connection (fd: " << _fd << "): "
 		              << std::strerror(errno) << std::endl;
 		_shouldClose = true;
 		return false;
@@ -65,26 +66,40 @@ bool Connection::readRequest() {
 	_requestBuffer.append(buffer, bytesRead);
 	updateActivity();
 
-	Logger::debug << "Read " << bytesRead << " bytes from connection (fd: " << _fd 
+	Logger::debug << "Read " << bytesRead << " bytes from connection (fd: " << _fd
 	              << "), total: " << _requestBuffer.size() << " bytes" << std::endl;
 
 	// Check if we have a complete HTTP request
-	// For now, just check for \r\n\r\n (end of headers)
-	// TODO: Proper HTTP request parsing
 	if (_requestBuffer.find("\r\n\r\n") != std::string::npos) {
 		Logger::debug << "Complete request received (fd: " << _fd << ")" << std::endl;
 		_state = PROCESSING;
-		
-		// For now, prepare a simple response
-		// TODO: Proper HTTP request processing
-		_responseBuffer = "HTTP/1.1 200 OK\r\n"
-		                  "Content-Type: text/html\r\n"
-		                  "Content-Length: 54\r\n"
-		                  "Connection: close\r\n"
-		                  "\r\n"
-		                  "<html><body><h1>Hello from Webserv!</h1></body></html>";
+
+		// Parse HTTP request
+		HTTP::Request request;
+		if (!request.parse(_requestBuffer)) {
+			Logger::error << "Failed to parse HTTP request" << std::endl;
+			HTTP::Response errorResp = HTTP::Response::errorResponse(400, "Bad Request");
+			_responseBuffer = errorResp.build();
+			_responseOffset = 0;
+			_state = WRITING_RESPONSE;
+			_shouldClose = true;
+			return true;
+		}
+
+		// Debug: print request
+		if (Logger::debug << "") {
+			request.print();
+		}
+
+		// Handle request
+		HTTP::RequestHandler handler(_server);
+		HTTP::Response response = handler.handle(request);
+
+		// Build response
+		_responseBuffer = response.build();
 		_responseOffset = 0;
 		_state = WRITING_RESPONSE;
+		// Don't set _shouldClose here - let writeResponse handle it
 	}
 
 	return true;
@@ -107,7 +122,7 @@ bool Connection::writeResponse() {
 		if (errno == EWOULDBLOCK || errno == EAGAIN) {
 			return true; // Not an error, just can't write now
 		}
-		Logger::error << "Error writing to connection (fd: " << _fd << "): " 
+		Logger::error << "Error writing to connection (fd: " << _fd << "): "
 		              << std::strerror(errno) << std::endl;
 		_shouldClose = true;
 		return false;
@@ -116,8 +131,8 @@ bool Connection::writeResponse() {
 	_responseOffset += bytesWritten;
 	updateActivity();
 
-	Logger::debug << "Wrote " << bytesWritten << " bytes to connection (fd: " << _fd 
-	              << "), total: " << _responseOffset << "/" << _responseBuffer.size() 
+	Logger::debug << "Wrote " << bytesWritten << " bytes to connection (fd: " << _fd
+	              << "), total: " << _responseOffset << "/" << _responseBuffer.size()
 	              << " bytes" << std::endl;
 
 	// Check if response is complete

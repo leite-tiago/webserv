@@ -8,6 +8,8 @@
 #include <string>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include "http/Request.hpp"
+#include "http/Response.hpp"
 
 // Forward declarations
 class Server;

@@ -37,7 +37,7 @@ int	main(int ac, char **av, char **env)
 	// Parse configuration
 	Config config;
 	ConfigParser parser;
-	
+
 	if (!parser.parse(configFile, config)) {
 		Logger::error << parser.getError() << std::endl;
 		return 1;
@@ -49,7 +49,7 @@ int	main(int ac, char **av, char **env)
 	// Initialize server manager
 	HTTP::ServerManager serverManager;
 	g_serverManager = &serverManager;
-	
+
 	if (!serverManager.init(config)) {
 		Logger::error << "Failed to initialize server manager" << std::endl;
 		return 1;
