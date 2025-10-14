@@ -27,3 +27,7 @@
 #include "Instance.hpp"
 #include "http/ServerManager.hpp"
 #include "Settings.hpp"
+#include "Config.hpp"
+#include "Server.hpp"
+#include "Route.hpp"
+#include "ConfigParser.hpp"

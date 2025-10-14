@@ -1,40 +1,43 @@
 #include "includes/webserv.hpp"
 
-// TODO: Implementar as classes Settings, Instance, HTTP::ServerManager, Utils
-// Por enquanto, comentando para permitir compilação
-
 int	main(int ac, char **av, char **env)
 {
-	(void)ac;
-	(void)av;
 	(void)env;
 
-	std::cout << "Webserv iniciando..." << std::endl; //[DEBUG]
+	std::cout << "Webserv starting..." << std::endl;
 
-	// Initialize settings inside main to avoid static initialization issues
+	// Initialize settings
 	Settings* settings = Instance::Get<Settings>();
-
-	// TODO: Implementar lógica do servidor
-
-	ac--;
-	av++;
-	if (!settings->isValid())
-		return 1;
-
-	//YAML::RunTests();
-	HTTP::ServerManager* serverManager = Instance::Get<HTTP::ServerManager>();
-
-	try {
-		// Simplified: just use a default config file path for now
-		std::string configFile = (ac > 0) ? av[0] : "config/default.conf";
-		if (!serverManager->loadConfig(configFile))
-			return 1;
-	}
-	catch (const std::exception& e) {
-		Utils::showException("Failed to load configuration file", e);
+	if (!settings->isValid()) {
+		std::cerr << "Error: Failed to load settings" << std::endl;
 		return 1;
 	}
 
+	// Determine config file path
+	std::string configFile = (ac > 1) ? av[1] : "config/default.conf";
+	std::cout << "Loading configuration from: " << configFile << std::endl;
+
+	// Parse configuration
+	Config config;
+	ConfigParser parser;
+
+	if (!parser.parse(configFile, config)) {
+		std::cerr << "Error: " << parser.getError() << std::endl;
+		return 1;
+	}
+
+	std::cout << "Configuration loaded successfully!" << std::endl;
+	std::cout << std::endl;
+
+	// Print configuration (debug)
+	config.print();
+
+	// TODO: Start server manager with the parsed configuration
+	// HTTP::ServerManager* serverManager = Instance::Get<HTTP::ServerManager>();
+	// serverManager->start(config);
+
+	std::cout << std::endl;
+	std::cout << "Press Ctrl+C to stop the server..." << std::endl;
 
 	return 0;
 }
