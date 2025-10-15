@@ -29,6 +29,13 @@ RequestHandler::~RequestHandler() {}
 Response RequestHandler::handle(const Request& request) {
 	Logger::info << "Handling " << request.getMethod() << " " << request.getPath() << std::endl;
 
+	// First, check if method is recognized (GET, POST, DELETE)
+	std::string method = request.getMethod();
+	if (method != "GET" && method != "POST" && method != "DELETE") {
+		Logger::warning << "Unknown method: " << method << std::endl;
+		return notImplemented(method);
+	}
+
 	// Find matching route
 	const Route* route = _server->matchRoute(request.getPath());
 	if (!route) {
@@ -57,7 +64,7 @@ Response RequestHandler::handle(const Request& request) {
 	} else if (request.getMethod() == "DELETE") {
 		return handleDelete(request, route);
 	} else {
-		return methodNotAllowed(request.getMethod());
+		return notImplemented(request.getMethod());
 	}
 }
 
@@ -115,7 +122,12 @@ Response RequestHandler::handleGet(const Request& request, const Route* route) {
 		// If still a directory, check if autoindex is enabled
 		if (isDirectory(filePath)) {
 			if (route->isDirectoryListingEnabled()) {
-				return Response::errorResponse(200, generateDirectoryListing(filePath, request.getPath()));
+				// Generate directory listing
+				Response response;
+				response.setStatus(200);
+				response.setContentType("text/html");
+				response.setBody(generateDirectoryListing(filePath, request.getPath()));
+				return response;
 			} else {
 				return forbidden("Directory listing is disabled");
 			}
@@ -203,6 +215,21 @@ Response RequestHandler::handlePost(const Request& request, const Route* route) 
 			} else {
 				return notFound(request.getPath());
 			}
+		}
+	}
+
+	// Check if this is a POST to a static file (should return 405)
+	// Do this check BEFORE handling form data or other generic handlers
+	std::string resolvedPath = resolveFilePath(request.getPath(), route);
+	if (fileExists(resolvedPath) && !isDirectory(resolvedPath)) {
+		// This is an existing file - check if it's a static file
+		std::string ext = getFileExtension(resolvedPath);
+		// Common static file extensions
+		if (ext == "html" || ext == "htm" || ext == "css" || ext == "js" ||
+		    ext == "jpg" || ext == "jpeg" || ext == "png" || ext == "gif" ||
+		    ext == "txt" || ext == "pdf" || ext == "ico") {
+			// This is a static file with no POST handler (not CGI, not upload)
+			return methodNotAllowed(request.getMethod());
 		}
 	}
 
@@ -383,11 +410,17 @@ std::string RequestHandler::resolveFilePath(const std::string& requestPath, cons
 	std::string root = route->getRoot();
 	std::string routePath = route->getPath();
 
+	Logger::debug << "resolveFilePath: requestPath='" << requestPath
+	              << "', root='" << root
+	              << "', routePath='" << routePath << "'" << std::endl;
+
 	// Remove route prefix from request path
 	std::string relativePath = requestPath;
 	if (relativePath.compare(0, routePath.length(), routePath) == 0) {
 		relativePath = relativePath.substr(routePath.length());
 	}
+
+	Logger::debug << "relativePath after prefix removal: '" << relativePath << "'" << std::endl;
 
 	// Build full path
 	std::string fullPath = root;
@@ -396,6 +429,8 @@ std::string RequestHandler::resolveFilePath(const std::string& requestPath, cons
 		fullPath += "/";
 	}
 	fullPath += relativePath;
+
+	Logger::debug << "Final fullPath: '" << fullPath << "'" << std::endl;
 
 	return fullPath;
 }
@@ -664,6 +699,10 @@ Response RequestHandler::forbidden(const std::string& message) {
 
 Response RequestHandler::methodNotAllowed(const std::string& method) {
 	return Response::errorResponse(405, "Method " + method + " is not allowed for this resource.");
+}
+
+Response RequestHandler::notImplemented(const std::string& method) {
+	return Response::errorResponse(501, "Method " + method + " is not implemented.");
 }
 
 Response RequestHandler::internalServerError(const std::string& message) {

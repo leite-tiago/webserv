@@ -44,14 +44,9 @@ bool Connection::readRequest() {
 	ssize_t bytesRead = recv(_fd, buffer, BUFFER_SIZE - 1, 0);
 
 	if (bytesRead < 0) {
-		// Non-blocking socket: EWOULDBLOCK/EAGAIN means no data available
-		if (errno == EWOULDBLOCK || errno == EAGAIN) {
-			return true; // Not an error, just no data yet
-		}
-		Logger::error << "Error reading from connection (fd: " << _fd << "): "
-		              << std::strerror(errno) << std::endl;
-		_shouldClose = true;
-		return false;
+		// Non-blocking socket: would block means no data available
+		// Don't check errno - just return success and try again later
+		return true; // Not an error for non-blocking sockets
 	}
 
 	if (bytesRead == 0) {
@@ -118,14 +113,9 @@ bool Connection::writeResponse() {
 	ssize_t bytesWritten = send(_fd, data, remaining, 0);
 
 	if (bytesWritten < 0) {
-		// Non-blocking socket: EWOULDBLOCK/EAGAIN means socket not ready
-		if (errno == EWOULDBLOCK || errno == EAGAIN) {
-			return true; // Not an error, just can't write now
-		}
-		Logger::error << "Error writing to connection (fd: " << _fd << "): "
-		              << std::strerror(errno) << std::endl;
-		_shouldClose = true;
-		return false;
+		// Non-blocking socket: would block means socket not ready
+		// Don't check errno - just return success and try again later
+		return true; // Not an error for non-blocking sockets
 	}
 
 	_responseOffset += bytesWritten;

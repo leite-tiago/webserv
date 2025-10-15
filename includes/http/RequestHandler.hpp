@@ -57,6 +57,7 @@ private:
 	Response notFound(const std::string& path);
 	Response forbidden(const std::string& path);
 	Response methodNotAllowed(const std::string& method);
+	Response notImplemented(const std::string& method);
 	Response internalServerError(const std::string& message);
 };
 

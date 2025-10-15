@@ -88,10 +88,18 @@ const Route* Server::matchRoute(const std::string& path) const {
 
 		// Verificar se o path começa com routePath
 		if (path.compare(0, routePath.length(), routePath) == 0) {
-			// É um match! Verificar se é melhor que o anterior
-			if (routePath.length() > bestMatchLen) {
-				bestMatch = &_routes[i];
-				bestMatchLen = routePath.length();
+			// Verificar se é um match válido:
+			// - Se routePath é "/" sempre é válido
+			// - Se path tem o mesmo tamanho que routePath, é válido
+			// - Se o próximo caractere após routePath é "/", é válido
+			if (routePath == "/" ||
+			    path.length() == routePath.length() ||
+			    (path.length() > routePath.length() && path[routePath.length()] == '/')) {
+				// É um match! Verificar se é melhor que o anterior
+				if (routePath.length() > bestMatchLen) {
+					bestMatch = &_routes[i];
+					bestMatchLen = routePath.length();
+				}
 			}
 		}
 	}
