@@ -1,0 +1,9 @@
+This is a simple text file served by Webserv!
+
+Testing plain text content delivery.
+
+Line 1
+Line 2
+Line 3
+
+EOF

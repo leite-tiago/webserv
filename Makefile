@@ -5,7 +5,10 @@ FLAGS		= -Wall -Wextra -Werror -std=c++98 -I.
 RM			= rm -rf
 
 OBJDIR		= .objFiles
-FILES		= webserv
+FILES		= webserv src/utils/misc src/Instance src/Settings src/Logger src/Yaml \
+			  src/Config src/Server src/Route src/ConfigParser \
+			  src/Socket src/Connection src/ServerManager \
+			  src/http/Request src/http/Response src/http/RequestHandler
 SRC			= $(FILES:=.cpp)
 OBJ			= $(addprefix $(OBJDIR)/, $(FILES:=.o))
 HEADER		= includes/webserv.hpp
@@ -28,7 +31,7 @@ $(NAME): $(OBJ) $(HEADER)
 
 
 $(OBJDIR)/%.o: %.cpp $(HEADER)
-	@mkdir -p $(OBJDIR)
+	@mkdir -p $(dir $@)
 	@$(CC) $(FLAGS) -c $< -o $@
 
 clean:
