@@ -2,7 +2,7 @@
  * Settings.cpp
  * Implementation of Settings class
  */
-#include "includes/Settings.hpp"
+#include "includes/core/Settings.hpp"
 
 // Static path definition
 const char* Settings::path = "config/settings.yaml";

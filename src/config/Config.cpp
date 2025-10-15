@@ -2,7 +2,7 @@
  * Config.cpp
  * Implementação da classe Config
  */
-#include "includes/Config.hpp"
+#include "includes/config/Config.hpp"
 #include "includes/utils/Logger.hpp"
 #include <iostream>
 

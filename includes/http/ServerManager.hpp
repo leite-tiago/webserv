@@ -5,9 +5,9 @@
  */
 #pragma once
 
-#include "../Config.hpp"
-#include "../Socket.hpp"
-#include "../Connection.hpp"
+#include "includes/config/Config.hpp"
+#include "includes/network/Socket.hpp"
+#include "includes/network/Connection.hpp"
 #include <string>
 #include <vector>
 #include <map>

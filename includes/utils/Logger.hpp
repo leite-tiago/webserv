@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "../webserv.hpp"
+#include "includes/webserv.hpp"
 
 // Colors
 #define RESET	"\033[39m"

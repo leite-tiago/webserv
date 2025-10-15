@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include "Server.hpp"
+#include "includes/config/Server.hpp"
 #include <string>
 #include <vector>
 

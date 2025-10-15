@@ -2,7 +2,7 @@
  * Server.cpp
  * Implementação da classe Server
  */
-#include "includes/Server.hpp"
+#include "includes/config/Server.hpp"
 #include "includes/utils/Logger.hpp"
 #include <iostream>
 #include <algorithm>

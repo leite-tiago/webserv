@@ -6,8 +6,8 @@
 
 #include "Request.hpp"
 #include "Response.hpp"
-#include "../Server.hpp"
-#include "../Route.hpp"
+#include "includes/config/Server.hpp"
+#include "includes/config/Route.hpp"
 
 namespace HTTP {
 

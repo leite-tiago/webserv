@@ -6,7 +6,12 @@
  */
 #pragma once
 
-#include "webserv.hpp"
+#include <string>
+#include <map>
+#include <vector>
+#include "includes/config/Yaml.hpp"
+#include "includes/core/Instance.hpp"
+#include "includes/utils/Utils.hpp"
 
 /**
  * Classe Settings - Gerenciador de configurações do sistema

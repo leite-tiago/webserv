@@ -2,7 +2,7 @@
  * Route.cpp
  * Implementação da classe Route
  */
-#include "includes/Route.hpp"
+#include "includes/config/Route.hpp"
 #include "includes/utils/Logger.hpp"
 #include <iostream>
 #include <algorithm>

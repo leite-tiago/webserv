@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include "Config.hpp"
+#include "includes/config/Config.hpp"
 #include <string>
 #include <vector>
 #include <fstream>

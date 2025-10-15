@@ -2,7 +2,7 @@
  * ConfigParser.cpp
  * Implementação do parser de configuração
  */
-#include "includes/ConfigParser.hpp"
+#include "includes/config/ConfigParser.hpp"
 #include "includes/utils/Logger.hpp"
 #include "includes/utils/Utils.hpp"
 #include <iostream>

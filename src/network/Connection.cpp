@@ -2,9 +2,9 @@
  * Connection.cpp
  * Implementation of Connection class
  */
-#include "includes/Connection.hpp"
-#include "includes/Socket.hpp"
-#include "includes/Server.hpp"
+#include "includes/network/Connection.hpp"
+#include "includes/network/Socket.hpp"
+#include "includes/config/Server.hpp"
 #include "includes/http/RequestHandler.hpp"
 #include "includes/utils/Logger.hpp"
 #include <unistd.h>

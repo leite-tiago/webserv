@@ -2,7 +2,7 @@
  * Socket.cpp
  * Implementation of Socket class
  */
-#include "includes/Socket.hpp"
+#include "includes/network/Socket.hpp"
 #include "includes/utils/Logger.hpp"
 #include <cstring>
 #include <cerrno>

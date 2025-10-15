@@ -5,10 +5,10 @@
 #include "includes/cgi/CGIExecutor.hpp"
 #include "includes/http/Request.hpp"
 #include "includes/http/Response.hpp"
-#include "includes/Server.hpp"
-#include "includes/Route.hpp"
+#include "includes/config/Server.hpp"
+#include "includes/config/Route.hpp"
 #include "includes/utils/Logger.hpp"
-#include "includes/Settings.hpp"
+#include "includes/core/Settings.hpp"
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/select.h>

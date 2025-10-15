@@ -4,8 +4,8 @@
  */
 #include "includes/http/RequestHandler.hpp"
 #include "includes/cgi/CGIExecutor.hpp"
-#include "includes/Settings.hpp"
-#include "includes/Instance.hpp"
+#include "includes/core/Settings.hpp"
+#include "includes/core/Instance.hpp"
 #include "includes/utils/Logger.hpp"
 #include <sys/stat.h>
 #include <sys/types.h>

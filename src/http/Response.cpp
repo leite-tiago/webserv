@@ -3,8 +3,8 @@
  * Implementation of HTTP Response builder
  */
 #include "includes/http/Response.hpp"
-#include "includes/Settings.hpp"
-#include "includes/Instance.hpp"
+#include "includes/core/Settings.hpp"
+#include "includes/core/Instance.hpp"
 #include <sstream>
 #include <ctime>
 #include <iomanip>
