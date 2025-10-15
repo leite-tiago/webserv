@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Form - webserv</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"], input[type="email"], textarea, input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 30px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .info {
+            background-color: #e7f3fe;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>webserv - Testes de Funcionalidades HTTP</h1>
+
+    <!-- Test 1: Form Data (application/x-www-form-urlencoded) -->
+    <div class="form-container">
+        <h2>1. Teste de Formulário (application/x-www-form-urlencoded)</h2>
+        <form action="/test" method="POST" enctype="application/x-www-form-urlencoded">
+            <label for="name">Nome:</label>
+            <input type="text" id="name" name="name" value="João Silva" required>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" value="joao@example.com" required>
+
+            <label for="message">Mensagem:</label>
+            <textarea id="message" name="message" rows="4">Olá, este é um teste!</textarea>
+
+            <button type="submit">Enviar Formulário</button>
+        </form>
+        <div class="info">
+            <strong>Info:</strong> Este formulário usa <code>application/x-www-form-urlencoded</code>.
+            Os dados serão parseados e exibidos na resposta.
+        </div>
+    </div>
+
+    <!-- Test 2: File Upload (multipart/form-data) -->
+    <div class="form-container">
+        <h2>2. Teste de Upload de Arquivo (multipart/form-data)</h2>
+        <form action="/upload" method="POST" enctype="multipart/form-data">
+            <label for="username">Nome do Utilizador:</label>
+            <input type="text" id="username" name="username" value="testuser" required>
+
+            <label for="file">Escolha um arquivo:</label>
+            <input type="file" id="file" name="file" required>
+
+            <label for="description">Descrição:</label>
+            <textarea id="description" name="description" rows="3">Arquivo de teste</textarea>
+
+            <button type="submit">Upload Arquivo</button>
+        </form>
+        <div class="info">
+            <strong>Info:</strong> Este formulário usa <code>multipart/form-data</code> para upload de arquivos.
+            O arquivo será salvo no diretório configurado no servidor.
+        </div>
+    </div>
+
+    <!-- Test 3: Query String -->
+    <div class="form-container">
+        <h2>3. Teste de Query String (GET)</h2>
+        <form action="/test" method="GET">
+            <label for="search">Busca:</label>
+            <input type="text" id="search" name="search" value="webserv test" required>
+
+            <label for="category">Categoria:</label>
+            <input type="text" id="category" name="category" value="HTTP">
+
+            <label for="limit">Limite:</label>
+            <input type="text" id="limit" name="limit" value="10">
+
+            <button type="submit">Buscar (GET)</button>
+        </form>
+        <div class="info">
+            <strong>Info:</strong> Este formulário envia dados via query string (URL).
+            Exemplo: <code>/test?search=webserv+test&category=HTTP&limit=10</code>
+        </div>
+    </div>
+
+    <!-- Test 4: Cache Test -->
+    <div class="form-container">
+        <h2>4. Teste de Cache Headers</h2>
+        <p>Recarregue esta página várias vezes e observe os headers:</p>
+        <ul>
+            <li><strong>Last-Modified:</strong> Indica quando o arquivo foi modificado</li>
+            <li><strong>ETag:</strong> Identificador único baseado no conteúdo</li>
+            <li><strong>Cache-Control:</strong> Controle de cache</li>
+        </ul>
+        <p>Teste com DevTools (F12) → Network → Headers</p>
+        <div class="info">
+            <strong>Info:</strong> O servidor deve retornar <code>304 Not Modified</code> se o arquivo não mudou.
+        </div>
+    </div>
+
+    <!-- Test 5: DELETE Method -->
+    <div class="form-container">
+        <h2>5. Teste de DELETE</h2>
+        <p>Use curl ou fetch para testar o método DELETE:</p>
+        <pre style="background: #f4f4f4; padding: 10px; border-radius: 4px; overflow-x: auto;">
+curl -X DELETE http://localhost:8080/test.txt
+
+# Ou com JavaScript (abra o Console - F12):
+fetch('/test.txt', { method: 'DELETE' })
+    .then(r => console.log('Status:', r.status))
+        </pre>
+        <div class="info">
+            <strong>Info:</strong> DELETE deve retornar <code>204 No Content</code> se bem-sucedido,
+            ou <code>403 Forbidden</code> se sem permissões.
+        </div>
+    </div>
+
+    <!-- Test 6: Chunked Transfer Encoding -->
+    <div class="form-container">
+        <h2>6. Teste de Chunked Transfer Encoding</h2>
+        <p>Teste com curl enviando dados em chunks:</p>
+        <pre style="background: #f4f4f4; padding: 10px; border-radius: 4px; overflow-x: auto;">
+curl -X POST http://localhost:8080/test \
+  -H "Transfer-Encoding: chunked" \
+  --data-binary @- << EOF
+5
+Hello
+6
+ World
+0
+
+EOF
+        </pre>
+        <div class="info">
+            <strong>Info:</strong> O servidor deve decodificar os chunks automaticamente
+            e processar o body completo.
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px; color: #888;">
+        <p>webserv/1.0 - Projeto 42</p>
+        <p><a href="/">← Voltar à página inicial</a></p>
+    </div>
+</body>
+</html>

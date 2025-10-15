@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test - webserv</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        h1, h2 {
+            color: #4ec9b0;
+        }
+        .test-section {
+            background: #252526;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #4ec9b0;
+            border-radius: 4px;
+        }
+        button {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #1177bb;
+        }
+        .output {
+            background: #1e1e1e;
+            border: 1px solid #3c3c3c;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { color: #4ec9b0; }
+        .error { color: #f48771; }
+        .info { color: #9cdcfe; }
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        code {
+            background: #1e1e1e;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #ce9178;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 webserv - Testes de API HTTP</h1>
+
+    <!-- Test 1: Query String -->
+    <div class="test-section">
+        <h2>1. Teste de Query String</h2>
+        <p>Testa o parsing de parâmetros na URL</p>
+        <button onclick="testQueryString()">Executar Teste</button>
+        <div class="output" id="output1"></div>
+    </div>
+
+    <!-- Test 2: Form Data POST -->
+    <div class="test-section">
+        <h2>2. Teste de Form Data (POST)</h2>
+        <p>Envia dados com <code>application/x-www-form-urlencoded</code></p>
+        <button onclick="testFormData()">Executar Teste</button>
+        <div class="output" id="output2"></div>
+    </div>
+
+    <!-- Test 3: File Upload -->
+    <div class="test-section">
+        <h2>3. Teste de Upload de Arquivo</h2>
+        <input type="file" id="fileInput" style="margin: 10px 0;">
+        <button onclick="testFileUpload()">Upload Arquivo</button>
+        <div class="output" id="output3"></div>
+    </div>
+
+    <!-- Test 4: Cache Headers -->
+    <div class="test-section">
+        <h2>4. Teste de Cache Headers</h2>
+        <p>Verifica ETag, Last-Modified, e retorno 304</p>
+        <button onclick="testCache()">Executar Teste</button>
+        <div class="output" id="output4"></div>
+    </div>
+
+    <!-- Test 5: DELETE -->
+    <div class="test-section">
+        <h2>5. Teste de DELETE</h2>
+        <input type="text" id="deleteFile" placeholder="/caminho/arquivo.txt" style="width: 300px; padding: 8px; background: #1e1e1e; color: #d4d4d4; border: 1px solid #3c3c3c;">
+        <button onclick="testDelete()">Executar DELETE</button>
+        <div class="output" id="output5"></div>
+    </div>
+
+    <!-- Test 6: Chunked Encoding -->
+    <div class="test-section">
+        <h2>6. Teste de Chunked Transfer Encoding</h2>
+        <p>Observação: Navegadores não suportam envio de chunked via fetch(). Use curl:</p>
+        <pre style="color: #ce9178;">curl -X POST http://localhost:8080/test \
+  -H "Transfer-Encoding: chunked" \
+  --data-binary @file.txt</pre>
+    </div>
+
+    <script>
+        function log(outputId, message, type = 'info') {
+            const output = document.getElementById(outputId);
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            const timestamp = new Date().toLocaleTimeString();
+            output.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        async function testQueryString() {
+            const output = document.getElementById('output1');
+            output.innerHTML = '';
+
+            log('output1', '🚀 Iniciando teste de Query String...');
+
+            try {
+                const url = '/test?name=João&age=25&city=Lisboa&active=true';
+                log('output1', `📤 GET ${url}`, 'info');
+
+                const response = await fetch(url);
+
+                log('output1', `📥 Status: ${response.status} ${response.statusText}`,
+                    response.ok ? 'success' : 'error');
+
+                const headers = {};
+                response.headers.forEach((value, key) => {
+                    headers[key] = value;
+                });
+
+                log('output1', `📋 Headers:\n${JSON.stringify(headers, null, 2)}`);
+
+                const text = await response.text();
+                log('output1', `📄 Response (${text.length} bytes):\n${text.substring(0, 500)}...`, 'success');
+
+            } catch (error) {
+                log('output1', `❌ Erro: ${error.message}`, 'error');
+            }
+        }
+
+        async function testFormData() {
+            const output = document.getElementById('output2');
+            output.innerHTML = '';
+
+            log('output2', '🚀 Iniciando teste de Form Data...');
+
+            try {
+                const formData = new URLSearchParams();
+                formData.append('username', 'testuser');
+                formData.append('email', 'test@example.com');
+                formData.append('message', 'Olá do webserv! 🎉');
+                formData.append('timestamp', new Date().toISOString());
+
+                log('output2', `📤 POST /test\nContent-Type: application/x-www-form-urlencoded`);
+                log('output2', `📦 Data: ${formData.toString()}`);
+
+                const response = await fetch('/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: formData
+                });
+
+                log('output2', `📥 Status: ${response.status} ${response.statusText}`,
+                    response.ok ? 'success' : 'error');
+
+                const text = await response.text();
+                log('output2', `📄 Response:\n${text.substring(0, 800)}`, 'success');
+
+            } catch (error) {
+                log('output2', `❌ Erro: ${error.message}`, 'error');
+            }
+        }
+
+        async function testFileUpload() {
+            const output = document.getElementById('output3');
+            output.innerHTML = '';
+
+            const fileInput = document.getElementById('fileInput');
+
+            if (!fileInput.files.length) {
+                log('output3', '⚠️  Selecione um arquivo primeiro!', 'error');
+                return;
+            }
+
+            log('output3', '🚀 Iniciando upload de arquivo...');
+
+            try {
+                const file = fileInput.files[0];
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('description', 'Arquivo enviado via teste de API');
+                formData.append('timestamp', new Date().toISOString());
+
+                log('output3', `📤 POST /upload\nContent-Type: multipart/form-data`);
+                log('output3', `📁 Arquivo: ${file.name} (${file.size} bytes, ${file.type})`);
+
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                log('output3', `📥 Status: ${response.status} ${response.statusText}`,
+                    response.ok ? 'success' : 'error');
+
+                const text = await response.text();
+                log('output3', `📄 Response:\n${text}`, response.ok ? 'success' : 'error');
+
+            } catch (error) {
+                log('output3', `❌ Erro: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCache() {
+            const output = document.getElementById('output4');
+            output.innerHTML = '';
+
+            log('output4', '🚀 Iniciando teste de Cache Headers...');
+
+            try {
+                // First request
+                log('output4', '📤 GET /index.html (primeira requisição)');
+                const response1 = await fetch('/index.html', {
+                    cache: 'no-cache'
+                });
+
+                const etag = response1.headers.get('ETag');
+                const lastModified = response1.headers.get('Last-Modified');
+                const cacheControl = response1.headers.get('Cache-Control');
+
+                log('output4', `📥 Status: ${response1.status}`, 'success');
+                log('output4', `🏷️  ETag: ${etag}`);
+                log('output4', `📅 Last-Modified: ${lastModified}`);
+                log('output4', `⏱️  Cache-Control: ${cacheControl}`);
+
+                // Second request with ETag
+                if (etag) {
+                    log('output4', '\n📤 GET /index.html (segunda requisição com If-None-Match)');
+                    const response2 = await fetch('/index.html', {
+                        headers: {
+                            'If-None-Match': etag
+                        }
+                    });
+
+                    log('output4', `📥 Status: ${response2.status}`,
+                        response2.status === 304 ? 'success' : 'info');
+
+                    if (response2.status === 304) {
+                        log('output4', '✅ Cache funcionando! Servidor retornou 304 Not Modified', 'success');
+                    } else {
+                        log('output4', '⚠️  Esperado 304, recebido ' + response2.status, 'error');
+                    }
+                }
+
+            } catch (error) {
+                log('output4', `❌ Erro: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDelete() {
+            const output = document.getElementById('output5');
+            output.innerHTML = '';
+
+            const filePath = document.getElementById('deleteFile').value;
+
+            if (!filePath) {
+                log('output5', '⚠️  Digite o caminho do arquivo!', 'error');
+                return;
+            }
+
+            log('output5', '🚀 Iniciando teste de DELETE...');
+
+            try {
+                log('output5', `📤 DELETE ${filePath}`);
+
+                const response = await fetch(filePath, {
+                    method: 'DELETE'
+                });
+
+                log('output5', `📥 Status: ${response.status} ${response.statusText}`,
+                    response.ok ? 'success' : 'error');
+
+                if (response.status === 204) {
+                    log('output5', '✅ Arquivo deletado com sucesso! (204 No Content)', 'success');
+                } else if (response.status === 200) {
+                    log('output5', '✅ Arquivo deletado com sucesso! (200 OK)', 'success');
+                    const text = await response.text();
+                    if (text) {
+                        log('output5', `📄 Response: ${text}`);
+                    }
+                } else if (response.status === 403) {
+                    log('output5', '❌ Permissão negada (403 Forbidden)', 'error');
+                } else if (response.status === 404) {
+                    log('output5', '❌ Arquivo não encontrado (404 Not Found)', 'error');
+                } else {
+                    const text = await response.text();
+                    log('output5', `📄 Response: ${text}`, 'error');
+                }
+
+            } catch (error) {
+                log('output5', `❌ Erro: ${error.message}`, 'error');
+            }
+        }
+    </script>
+
+    <div style="text-align: center; margin-top: 40px; color: #888;">
+        <p>webserv/1.0 - Testing Suite</p>
+        <p><a href="/" style="color: #4ec9b0;">← Voltar</a></p>
+    </div>
+</body>
+</html>

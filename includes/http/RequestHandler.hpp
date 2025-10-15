@@ -35,6 +35,22 @@ private:
 	bool isDirectory(const std::string& path);
 	std::string readFile(const std::string& path);
 	std::string generateDirectoryListing(const std::string& path, const std::string& requestPath);
+	bool hasWritePermission(const std::string& path);
+	bool hasReadPermission(const std::string& path);
+	std::string generateETag(const std::string& filePath);
+
+	// POST helpers
+	Response handleFormData(const Request& request, const Route* route);
+	Response handleFileUpload(const Request& request, const Route* route);
+	std::string saveUploadedFile(const std::string& content, const std::string& filename, const std::string& uploadDir);
+
+	// Multipart parsing
+	struct UploadedFile {
+		std::string filename;
+		std::string contentType;
+		std::string content;
+	};
+	std::vector<UploadedFile> parseMultipartData(const std::string& body, const std::string& boundary);
 
 	// Error responses
 	Response notFound(const std::string& path);
