@@ -33,3 +33,4 @@
 #include "Socket.hpp"
 #include "Connection.hpp"
 #include "http/ServerManager.hpp"
+#include "cgi/CGIExecutor.hpp"

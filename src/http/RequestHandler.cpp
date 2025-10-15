@@ -3,6 +3,7 @@
  * Implementation of HTTP Request Handler
  */
 #include "includes/http/RequestHandler.hpp"
+#include "includes/cgi/CGIExecutor.hpp"
 #include "includes/Settings.hpp"
 #include "includes/Instance.hpp"
 #include "includes/utils/Logger.hpp"
@@ -65,6 +66,29 @@ Response RequestHandler::handleGet(const Request& request, const Route* route) {
 	std::string filePath = resolveFilePath(request.getPath(), route);
 
 	Logger::debug << "Resolved file path: " << filePath << std::endl;
+
+	// Check if CGI is enabled and file extension matches
+	if (route->isCgiEnabled()) {
+		std::string ext = getFileExtension(filePath);
+		std::string cgiExt = route->getCgiExtension();
+
+		// Normalize extensions (add dot if missing)
+		if (!ext.empty() && ext[0] != '.') {
+			ext = "." + ext;
+		}
+		if (!cgiExt.empty() && cgiExt[0] != '.') {
+			cgiExt = "." + cgiExt;
+		}
+
+		if (ext == cgiExt) {
+			// This is a CGI script
+			if (fileExists(filePath)) {
+				return handleCGI(request, route, filePath);
+			} else {
+				return notFound(request.getPath());
+			}
+		}
+	}
 
 	// Check if file exists
 	if (!fileExists(filePath)) {
@@ -157,6 +181,31 @@ Response RequestHandler::handleGet(const Request& request, const Route* route) {
 Response RequestHandler::handlePost(const Request& request, const Route* route) {
 	Logger::info << "POST request - Content-Type: " << request.getContentType() << std::endl;
 
+	// Check if this is a CGI request (before other handlers)
+	if (route->isCgiEnabled()) {
+		// Check if file extension matches CGI extension
+		std::string path = resolveFilePath(request.getPath(), route);
+		std::string ext = getFileExtension(path);
+		std::string cgiExt = route->getCgiExtension();
+
+		// Normalize extensions (add dot if missing)
+		if (!ext.empty() && ext[0] != '.') {
+			ext = "." + ext;
+		}
+		if (!cgiExt.empty() && cgiExt[0] != '.') {
+			cgiExt = "." + cgiExt;
+		}
+
+		if (ext == cgiExt) {
+			// This is a CGI script
+			if (fileExists(path)) {
+				return handleCGI(request, route, path);
+			} else {
+				return notFound(request.getPath());
+			}
+		}
+	}
+
 	// Check if upload is enabled for multipart/form-data
 	if (request.isMultipart()) {
 		if (route->isUploadEnabled()) {
@@ -169,13 +218,6 @@ Response RequestHandler::handlePost(const Request& request, const Route* route) 
 	// Handle application/x-www-form-urlencoded
 	if (request.getContentType().find("application/x-www-form-urlencoded") != std::string::npos) {
 		return handleFormData(request, route);
-	}
-
-	// Check if CGI is enabled
-	if (route->isCgiEnabled()) {
-		// TODO: Implement CGI
-		Logger::info << "CGI execution requested (not yet implemented)" << std::endl;
-		return Response::errorResponse(501, "CGI not yet implemented");
 	}
 
 	// Simple POST response (generic body received)
@@ -598,6 +640,17 @@ std::vector<RequestHandler::UploadedFile> RequestHandler::parseMultipartData(con
 	}
 
 	return files;
+}
+
+// Handle CGI request
+Response RequestHandler::handleCGI(const Request& request, const Route* route, const std::string& scriptPath) {
+	Logger::info << "Executing CGI script: " << scriptPath << std::endl;
+
+	// Create CGI executor
+	CGI::Executor executor;
+
+	// Execute CGI and get response
+	return executor.execute(request, _server, route, scriptPath);
 }
 
 // Error responses

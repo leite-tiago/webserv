@@ -8,7 +8,8 @@ OBJDIR		= .objFiles
 FILES		= webserv src/utils/misc src/Instance src/Settings src/Logger src/Yaml \
 			  src/Config src/Server src/Route src/ConfigParser \
 			  src/Socket src/Connection src/ServerManager \
-			  src/http/Request src/http/Response src/http/RequestHandler
+			  src/http/Request src/http/Response src/http/RequestHandler \
+			  src/cgi/CGIExecutor
 SRC			= $(FILES:=.cpp)
 OBJ			= $(addprefix $(OBJDIR)/, $(FILES:=.o))
 HEADER		= includes/webserv.hpp

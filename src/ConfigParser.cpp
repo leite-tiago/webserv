@@ -185,15 +185,36 @@ bool ConfigParser::parseServerDirective(const std::string& directive,
 
 	if (directive == "listen") {
 		if (index >= tokens.size()) {
-			setError("Expected port after 'listen'");
+			setError("Expected port or host:port after 'listen'");
 			return false;
 		}
-		int port = toInt(tokens[index++]);
-		if (port <= 0 || port > 65535) {
-			setError("Invalid port number");
-			return false;
+
+		std::string listenValue = tokens[index++];
+		size_t colonPos = listenValue.find(':');
+
+		if (colonPos != std::string::npos) {
+			// Format: host:port
+			std::string host = listenValue.substr(0, colonPos);
+			std::string portStr = listenValue.substr(colonPos + 1);
+
+			server.setHost(host);
+
+			int port = toInt(portStr);
+			if (port <= 0 || port > 65535) {
+				setError("Invalid port number in listen directive");
+				return false;
+			}
+			server.addPort(port);
+		} else {
+			// Format: port only
+			int port = toInt(listenValue);
+			if (port <= 0 || port > 65535) {
+				setError("Invalid port number");
+				return false;
+			}
+			server.addPort(port);
 		}
-		server.addPort(port);
+
 		return expectToken(tokens, index, ";");
 
 	} else if (directive == "host") {

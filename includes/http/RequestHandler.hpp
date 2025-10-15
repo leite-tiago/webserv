@@ -42,6 +42,7 @@ private:
 	// POST helpers
 	Response handleFormData(const Request& request, const Route* route);
 	Response handleFileUpload(const Request& request, const Route* route);
+	Response handleCGI(const Request& request, const Route* route, const std::string& scriptPath);
 	std::string saveUploadedFile(const std::string& content, const std::string& filename, const std::string& uploadDir);
 
 	// Multipart parsing

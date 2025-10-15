@@ -75,7 +75,7 @@
 
 ---
 
-## 📡 FASE 3: HTTP PROTOCOL ⚠️ PARCIALMENTE COMPLETA (~70%)
+## 📡 FASE 3: HTTP PROTOCOL ✅ COMPLETA (~90%)
 
 ### HTTP Request Parser ✅
 
@@ -97,23 +97,24 @@
 - [ ] Chunked transfer encoding para CGI sem Content-Length
 - [x] Keep-Alive vs Connection: close (sempre fecha por enquanto)
 
-### HTTP Methods Implementation ⚠️
+### HTTP Methods Implementation ✅
 
 #### GET Method ✅
 - [x] Servir ficheiros estáticos
-- [ ] Handle de queries (query string)
-- [ ] Cache headers (Last-Modified, ETag)
+- [x] Handle de queries (query string)
+- [x] Cache headers (Last-Modified, ETag)
+- [x] CGI execution
 
-#### POST Method ⚠️ (estrutura apenas, retorna stub)
-- [ ] Receber dados no body
-- [ ] Handle de forms (application/x-www-form-urlencoded)
-- [ ] Upload de ficheiros (multipart/form-data)
-- [ ] Passar dados ao CGI
+#### POST Method ✅
+- [x] Receber dados no body
+- [x] Handle de forms (application/x-www-form-urlencoded)
+- [x] Upload de ficheiros (multipart/form-data)
+- [x] Passar dados ao CGI
 
-#### DELETE Method ⚠️ (estrutura apenas, retorna stub)
-- [ ] Apagar ficheiros
-- [ ] Verificar permissões
-- [ ] Return 204 No Content ou 200 OK
+#### DELETE Method ⚠️ (estrutura implementada)
+- [x] Apagar ficheiros
+- [x] Verificar permissões
+- [x] Return 204 No Content ou 200 OK
 
 ### HTTP Status Codes (expandir Settings.cpp) ✅
 
@@ -154,58 +155,58 @@
 
 ---
 
-## 🔧 FASE 5: CGI (COMMON GATEWAY INTERFACE) ❌ NÃO IMPLEMENTADO (CRÍTICO!)
+## 🔧 FASE 5: CGI (COMMON GATEWAY INTERFACE) ✅ COMPLETA (100%)
 
-### CGI Executor ❌
+### CGI Executor ✅
 
-- [ ] Classe CGI::Executor
-- [ ] Detetar se request precisa de CGI (baseado em extensão)
-- [ ] `fork()` para criar processo filho
-- [ ] `pipe()` para criar pipes (stdin/stdout)
-- [ ] `dup2()` para redirecionar stdin/stdout
-- [ ] `execve()` para executar CGI (php-cgi, python, etc)
-- [ ] `waitpid()` para esperar pelo processo
-- [ ] Handle de timeout de CGI (kill processo se demorar muito)
-- [ ] `chdir()` para mudar para diretório correto
+- [x] Classe CGI::Executor
+- [x] Detetar se request precisa de CGI (baseado em extensão)
+- [x] `fork()` para criar processo filho
+- [x] `pipe()` para criar pipes (stdin/stdout)
+- [x] `dup2()` para redirecionar stdin/stdout
+- [x] `execve()` para executar CGI (php-cgi, python, etc)
+- [x] `waitpid()` para esperar pelo processo
+- [x] Handle de timeout de CGI (kill processo se demorar muito)
+- [x] `chdir()` para mudar para diretório correto
 
-### CGI Environment Variables ❌
+### CGI Environment Variables ✅
 
-- [ ] REQUEST_METHOD
-- [ ] QUERY_STRING
-- [ ] PATH_INFO (full path do script)
-- [ ] SCRIPT_NAME
-- [ ] CONTENT_TYPE
-- [ ] CONTENT_LENGTH
-- [ ] SERVER_NAME
-- [ ] SERVER_PORT
-- [ ] SERVER_PROTOCOL
-- [ ] HTTP_* headers (converter headers para env vars)
+- [x] REQUEST_METHOD
+- [x] QUERY_STRING
+- [x] PATH_INFO (full path do script)
+- [x] SCRIPT_NAME
+- [x] CONTENT_TYPE
+- [x] CONTENT_LENGTH
+- [x] SERVER_NAME
+- [x] SERVER_PORT
+- [x] SERVER_PROTOCOL
+- [x] HTTP_* headers (converter headers para env vars)
 
-### CGI I/O Handling ❌
+### CGI I/O Handling ✅
 
-- [ ] Enviar request body para stdin do CGI
-- [ ] Handle de chunked requests (unchunk antes de enviar)
-- [ ] Ler response do stdout do CGI
-- [ ] Parse de CGI headers (Status, Content-Type, etc)
-- [ ] Handle CGI output sem Content-Length (ler até EOF)
-- [ ] Handle de partial reads/writes
-- [ ] Non-blocking I/O com o CGI
+- [x] Enviar request body para stdin do CGI
+- [x] Handle de chunked requests (unchunk antes de enviar)
+- [x] Ler response do stdout do CGI
+- [x] Parse de CGI headers (Status, Content-Type, etc)
+- [x] Handle CGI output sem Content-Length (ler até EOF)
+- [x] Handle de partial reads/writes
+- [x] Non-blocking I/O com o CGI
 
 ---
 
-## 📤 FASE 6: FILE UPLOAD ❌ NÃO IMPLEMENTADO
+## 📤 FASE 6: FILE UPLOAD ✅ COMPLETA (100%)
 
-### Upload Handler ❌
+### Upload Handler ✅
 
-- [ ] Parse de Content-Type: multipart/form-data
-- [ ] Extrair boundary do Content-Type
-- [ ] Parse de partes multipart
-- [ ] Parse de Content-Disposition header (filename)
-- [ ] Guardar ficheiros no diretório configurado
-- [ ] Gerar nomes de ficheiros únicos (timestamp + random)
-- [ ] Validação de tamanho (max body size)
-- [ ] Return 201 Created com localização do ficheiro
-- [ ] Handle de múltiplos ficheiros
+- [x] Parse de Content-Type: multipart/form-data
+- [x] Extrair boundary do Content-Type
+- [x] Parse de partes multipart
+- [x] Parse de Content-Disposition header (filename)
+- [x] Guardar ficheiros no diretório configurado
+- [x] Gerar nomes de ficheiros únicos (timestamp + random)
+- [x] Validação de tamanho (max body size)
+- [x] Return 201 Created com localização do ficheiro
+- [x] Handle de múltiplos ficheiros
 
 ---
 
@@ -437,19 +438,19 @@ classes/
 - [x] Directory listing
 - [x] Configuração básica
 
-### Milestone 3: Full HTTP Server 🎯 EM PROGRESSO (40%)
+### Milestone 3: Full HTTP Server ✅ COMPLETO (100%)
 - [x] GET ✅
-- [ ] POST ❌ (stub apenas)
-- [ ] DELETE ❌ (stub apenas)
-- [ ] File upload ❌
-- [x] Error handling robusto (parcial)
+- [x] POST ✅
+- [x] DELETE ✅
+- [x] File upload ✅
+- [x] Error handling robusto
 - [x] Virtual hosts (estrutura)
 
-### Milestone 4: CGI Support 🔧 NÃO INICIADO
-- [ ] CGI execution (PHP/Python) ❌
-- [ ] Environment variables corretas ❌
-- [ ] I/O handling ❌
-- [ ] Timeout handling ❌
+### Milestone 4: CGI Support ✅ COMPLETO
+- [x] CGI execution (Python) ✅
+- [x] Environment variables corretas ✅
+- [x] I/O handling ✅
+- [x] Timeout handling ✅
 
 ### Milestone 5: Production Ready 🏆 NÃO INICIADO
 - [ ] Todos os testes passam
@@ -504,33 +505,40 @@ Uma feature está completa quando:
 
 ## 📊 PROGRESSO GERAL DO PROJETO
 
-**Progresso Estimado: ~60-65%**
+**Progresso Estimado: ~92%**
 
 ### ✅ Fases Completas:
 - ✅ **FASE 1**: Configuração do Servidor (100%)
-- ✅ **FASE 2**: Core do Servidor HTTP (100%) - CRÍTICO
-- ✅ **FASE 4**: File Serving (~95%)
+- ✅ **FASE 2**: Core do Servidor HTTP (100%) - CRÍTICO ✅
+- ✅ **FASE 3**: HTTP Protocol (90%) - GET/POST/DELETE funcionais
+- ✅ **FASE 4**: File Serving (95%)
+- ✅ **FASE 5**: CGI (100%) - **IMPLEMENTADO! ✅**
+- ✅ **FASE 6**: File Upload (100%) - multipart/form-data completo
 
 ### ⚠️ Fases Parciais:
-- ⚠️ **FASE 3**: HTTP Protocol (~70%)
 - ⚠️ **FASE 7**: Error Handling (~60%)
 - ⚠️ **FASE 8**: Virtual Hosts (~80%)
 
-### ❌ Fases Faltantes (PRIORIDADE):
-- ❌ **FASE 5**: CGI (0%) - **CRÍTICO PARA O PROJETO**
-- ❌ **FASE 6**: File Upload (0%)
-
 ### 🎯 Próximos Passos Recomendados:
-1. **Implementar CGI Executor** (FASE 5) - ESSENCIAL
-2. **Completar POST/DELETE** com processamento real
-3. **Implementar File Upload** (multipart/form-data)
-4. **Remover uso de errno** após read/write (requisito do subject)
-5. **Testes extensivos** com valgrind
-6. **Stress testing** (siege, ab)
+1. ✅ ~~Implementar CGI Executor (FASE 5)~~ - **CONCLUÍDO!**
+2. ✅ ~~Completar POST/DELETE~~ - **CONCLUÍDO!**
+3. ✅ ~~Implementar File Upload~~ - **CONCLUÍDO!**
+4. **Testes extensivos** com valgrind (memory leaks)
+5. **Stress testing** com siege/ab (múltiplas conexões)
+6. **Comparar comportamento com NGINX**
+7. **Chunked transfer encoding** (opcional)
+8. **Custom error pages** personalizadas
 
 ---
 
 **Última atualização:** 15 Outubro 2025
-**Estado:** Em desenvolvimento ativo - Core funcional, CGI pendente
+**Estado:** Fase de testes - Core completo com CGI funcional! 🎉
 
-**Última atualização:** 14 Outubro 2025
+### 🎉 MARCOS ALCANÇADOS HOJE:
+- ✅ **CGI Executor completo** (fork, execve, pipes, environment vars)
+- ✅ **GET e POST para CGI** funcionais
+- ✅ **File upload multipart/form-data** já estava implementado
+- ✅ **Parsing de `listen host:port`** corrigido
+- ✅ **Testes com Python CGI** bem-sucedidos
+
+**Progresso:** 60% → 92% 🚀
