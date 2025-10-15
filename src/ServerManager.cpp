@@ -7,6 +7,7 @@
 #include <cstring>
 #include <cerrno>
 #include <algorithm>
+#include <sstream>
 #include <signal.h>
 #include <fcntl.h>
 
@@ -141,6 +142,22 @@ bool ServerManager::run() {
 	rebuildPollFds();
 
 	Logger::success << "Server running! Press Ctrl+C to stop." << std::endl;
+	std::cout << std::endl;
+	Logger::info << "Listening on:" << std::endl;
+	for (size_t i = 0; i < _listeningSockets.size(); ++i) {
+		std::string host = _listeningSockets[i]->getHost();
+		int port = _listeningSockets[i]->getPort();
+
+		// Convert 0.0.0.0 to localhost for display
+		std::string displayHost = (host == "0.0.0.0") ? "localhost" : host;
+
+		// Build URL
+		std::ostringstream url;
+		url << "http://" << displayHost << ":" << port;
+
+		std::cout << "  → " << Logger::param(url.str()) << std::endl;
+	}
+	std::cout << std::endl;
 
 	// Main event loop
 	while (_running) {

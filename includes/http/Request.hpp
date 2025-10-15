@@ -34,9 +34,22 @@ public:
 	size_t getContentLength() const;
 	std::string getContentType() const;
 	bool hasHeader(const std::string& name) const;
+	bool isChunked() const;
 
 	// Connection properties
 	bool keepAlive() const;
+
+	// Query string helpers
+	std::map<std::string, std::string> getQueryParams() const;
+	std::string getQueryParam(const std::string& name) const;
+
+	// Form data helpers (application/x-www-form-urlencoded)
+	std::map<std::string, std::string> getFormData() const;
+	std::string getFormField(const std::string& name) const;
+
+	// Multipart helpers
+	bool isMultipart() const;
+	std::string getMultipartBoundary() const;
 
 	// Debug
 	void print() const;
@@ -62,11 +75,20 @@ private:
 	bool _complete;
 	size_t _contentLength;
 	bool _hasContentLength;
+	bool _isChunked;
+
+	// Limits (RFC 7230)
+	static const size_t MAX_URI_LENGTH = 8192;
+	static const size_t MAX_HEADER_SIZE = 8192;
+	static const size_t MAX_HEADERS_COUNT = 100;
 
 	// Parsing helpers
 	bool parseRequestLine(const std::string& line);
 	bool parseHeader(const std::string& line);
 	void parseUri(const std::string& uri);
+	bool parseChunkedBody(const std::string& rawBody);
+	std::string decodeChunkedBody(const std::string& chunkedData);
+	std::string urlDecode(const std::string& str) const;
 	std::string toLowerCase(const std::string& str) const;
 	std::string trim(const std::string& str) const;
 };

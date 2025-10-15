@@ -7,10 +7,13 @@
 #include "includes/Instance.hpp"
 #include "includes/utils/Logger.hpp"
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include <dirent.h>
 #include <fstream>
 #include <sstream>
+#include <ctime>
+#include <vector>
 
 namespace HTTP {
 
@@ -110,6 +113,38 @@ Response RequestHandler::handleGet(const Request& request, const Route* route) {
 	Settings* settings = Instance::Get<Settings>();
 	response.setContentType(settings->httpMimeType(extension));
 
+	// Add cache headers
+	struct stat fileStat;
+	if (stat(filePath.c_str(), &fileStat) == 0) {
+		// Set Last-Modified header
+		response.setLastModified(fileStat.st_mtime);
+
+		// Generate and set ETag (based on inode, mtime, and size)
+		response.setETag(generateETag(filePath));
+
+		// Check If-None-Match (ETag validation)
+		if (request.hasHeader("if-none-match")) {
+			std::string clientETag = request.getHeader("if-none-match");
+			std::string serverETag = "\"" + generateETag(filePath) + "\"";
+			if (clientETag == serverETag) {
+				// File hasn't changed, return 304 Not Modified
+				Response notModified;
+				notModified.setStatus(304);
+				notModified.setKeepAlive(false);
+				return notModified;
+			}
+		}
+
+		// Check If-Modified-Since
+		if (request.hasHeader("if-modified-since")) {
+			// For simplicity, we'll skip date parsing
+			// In production, you'd parse the date and compare with fileStat.st_mtime
+		}
+
+		// Set Cache-Control header
+		response.setCacheControl("public, max-age=3600");
+	}
+
 	response.setBody(content);
 	response.setKeepAlive(false); // For now, always close connection
 
@@ -120,11 +155,20 @@ Response RequestHandler::handleGet(const Request& request, const Route* route) {
 
 // Handle POST request
 Response RequestHandler::handlePost(const Request& request, const Route* route) {
-	// Check if upload is enabled
-	if (route->isUploadEnabled()) {
-		// TODO: Implement file upload
-		Logger::info << "File upload requested (not yet implemented)" << std::endl;
-		return Response::errorResponse(501, "File upload not yet implemented");
+	Logger::info << "POST request - Content-Type: " << request.getContentType() << std::endl;
+
+	// Check if upload is enabled for multipart/form-data
+	if (request.isMultipart()) {
+		if (route->isUploadEnabled()) {
+			return handleFileUpload(request, route);
+		} else {
+			return Response::errorResponse(403, "File upload is not allowed for this resource");
+		}
+	}
+
+	// Handle application/x-www-form-urlencoded
+	if (request.getContentType().find("application/x-www-form-urlencoded") != std::string::npos) {
+		return handleFormData(request, route);
 	}
 
 	// Check if CGI is enabled
@@ -134,7 +178,7 @@ Response RequestHandler::handlePost(const Request& request, const Route* route) 
 		return Response::errorResponse(501, "CGI not yet implemented");
 	}
 
-	// Simple POST response
+	// Simple POST response (generic body received)
 	Response response;
 	response.setStatus(200);
 	response.setContentType("text/html");
@@ -145,7 +189,108 @@ Response RequestHandler::handlePost(const Request& request, const Route* route) 
 	     << "<head><title>POST Received</title></head>\n"
 	     << "<body>\n"
 	     << "<h1>POST Request Received</h1>\n"
-	     << "<p>Body size: " << request.getBody().length() << " bytes</p>\n"
+	     << "<p>Content-Type: " << request.getContentType() << "</p>\n"
+	     << "<p>Body size: " << request.getBody().length() << " bytes</p>\n";
+
+	if (request.isChunked()) {
+		body << "<p>Transfer-Encoding: chunked</p>\n";
+	}
+
+	body << "</body>\n"
+	     << "</html>\n";
+
+	response.setBody(body.str());
+	response.setKeepAlive(false);
+
+	return response;
+}
+
+// Handle form data (application/x-www-form-urlencoded)
+Response RequestHandler::handleFormData(const Request& request, const Route* /* route */) {
+	std::map<std::string, std::string> formData = request.getFormData();
+
+	Logger::info << "Form data received with " << formData.size() << " fields" << std::endl;
+
+	Response response;
+	response.setStatus(200);
+	response.setContentType("text/html");
+
+	std::ostringstream body;
+	body << "<!DOCTYPE html>\n"
+	     << "<html>\n"
+	     << "<head><title>Form Received</title></head>\n"
+	     << "<body>\n"
+	     << "<h1>Form Data Received</h1>\n"
+	     << "<table border='1'>\n"
+	     << "<tr><th>Field</th><th>Value</th></tr>\n";
+
+	for (std::map<std::string, std::string>::const_iterator it = formData.begin();
+	     it != formData.end(); ++it) {
+		body << "<tr><td>" << it->first << "</td><td>" << it->second << "</td></tr>\n";
+		Logger::debug << "  " << it->first << " = " << it->second << std::endl;
+	}
+
+	body << "</table>\n"
+	     << "</body>\n"
+	     << "</html>\n";
+
+	response.setBody(body.str());
+	response.setKeepAlive(false);
+
+	return response;
+}
+
+// Handle file upload (multipart/form-data)
+Response RequestHandler::handleFileUpload(const Request& request, const Route* route) {
+	std::string boundary = request.getMultipartBoundary();
+	if (boundary.empty()) {
+		return Response::errorResponse(400, "Missing boundary in multipart/form-data");
+	}
+
+	Logger::info << "File upload - boundary: " << boundary << std::endl;
+
+	// Parse multipart data
+	std::vector<UploadedFile> files = parseMultipartData(request.getBody(), boundary);
+
+	if (files.empty()) {
+		return Response::errorResponse(400, "No files found in upload");
+	}
+
+	// Get upload directory from route
+	std::string uploadDir = route->getUploadPath();
+	if (uploadDir.empty()) {
+		uploadDir = "./uploads";
+	}
+
+	// Save files
+	std::vector<std::string> savedPaths;
+	for (size_t i = 0; i < files.size(); ++i) {
+		std::string savedPath = saveUploadedFile(files[i].content, files[i].filename, uploadDir);
+		if (!savedPath.empty()) {
+			savedPaths.push_back(savedPath);
+			Logger::success << "Saved uploaded file: " << savedPath << std::endl;
+		}
+	}
+
+	// Build response
+	Response response;
+	response.setStatus(201); // Created
+	response.setContentType("text/html");
+
+	std::ostringstream body;
+	body << "<!DOCTYPE html>\n"
+	     << "<html>\n"
+	     << "<head><title>Upload Successful</title></head>\n"
+	     << "<body>\n"
+	     << "<h1>File Upload Successful</h1>\n"
+	     << "<p>" << savedPaths.size() << " file(s) uploaded:</p>\n"
+	     << "<ul>\n";
+
+	for (size_t i = 0; i < savedPaths.size(); ++i) {
+		body << "<li>" << savedPaths[i] << "</li>\n";
+	}
+
+	body << "</ul>\n"
 	     << "</body>\n"
 	     << "</html>\n";
 
@@ -171,17 +316,23 @@ Response RequestHandler::handleDelete(const Request& request, const Route* route
 		return forbidden("Cannot delete directories");
 	}
 
+	// Check write permission
+	if (!hasWritePermission(filePath)) {
+		return Response::errorResponse(403, "Permission denied: cannot delete file");
+	}
+
 	// Try to delete file
 	if (unlink(filePath.c_str()) == 0) {
 		Logger::success << "Deleted file: " << filePath << std::endl;
 
+		// Return 204 No Content (preferred for DELETE)
 		Response response;
-		response.setStatus(204); // No Content
+		response.setStatus(204);
 		response.setKeepAlive(false);
 		return response;
 	} else {
 		Logger::error << "Failed to delete file: " << filePath << std::endl;
-		return internalServerError("Failed to delete file");
+		return Response::errorResponse(500, "Failed to delete file");
 	}
 }
 
@@ -296,6 +447,157 @@ std::string RequestHandler::generateDirectoryListing(const std::string& dirPath,
 	     << "</html>\n";
 
 	return html.str();
+}
+
+// Check write permission
+bool RequestHandler::hasWritePermission(const std::string& path) {
+	return access(path.c_str(), W_OK) == 0;
+}
+
+// Check read permission
+bool RequestHandler::hasReadPermission(const std::string& path) {
+	return access(path.c_str(), R_OK) == 0;
+}
+
+// Generate ETag based on file metadata
+std::string RequestHandler::generateETag(const std::string& filePath) {
+	struct stat fileStat;
+	if (stat(filePath.c_str(), &fileStat) != 0) {
+		return "";
+	}
+
+	// Simple ETag: inode-mtime-size
+	std::ostringstream etag;
+	etag << std::hex << fileStat.st_ino << "-" << fileStat.st_mtime << "-" << fileStat.st_size;
+	return etag.str();
+}
+
+// Save uploaded file
+std::string RequestHandler::saveUploadedFile(const std::string& content, const std::string& filename, const std::string& uploadDir) {
+	// Create upload directory if it doesn't exist
+	mkdir(uploadDir.c_str(), 0755);
+
+	// Generate unique filename with timestamp
+	time_t now = time(NULL);
+	std::ostringstream uniqueName;
+	uniqueName << now << "_" << filename;
+
+	std::string fullPath = uploadDir;
+	if (fullPath[fullPath.length() - 1] != '/') {
+		fullPath += "/";
+	}
+	fullPath += uniqueName.str();
+
+	// Write file
+	std::ofstream file(fullPath.c_str(), std::ios::binary);
+	if (!file.is_open()) {
+		Logger::error << "Failed to create file: " << fullPath << std::endl;
+		return "";
+	}
+
+	file.write(content.c_str(), content.length());
+	file.close();
+
+	return fullPath;
+}
+
+// Parse multipart/form-data
+std::vector<RequestHandler::UploadedFile> RequestHandler::parseMultipartData(const std::string& body, const std::string& boundary) {
+	std::vector<UploadedFile> files;
+
+	std::string delimiter = "--" + boundary;
+	std::string endDelimiter = "--" + boundary + "--";
+
+	size_t pos = 0;
+	while ((pos = body.find(delimiter, pos)) != std::string::npos) {
+		// Skip the delimiter
+		pos += delimiter.length();
+
+		// Skip \r\n after delimiter
+		if (pos < body.length() && body[pos] == '\r') pos++;
+		if (pos < body.length() && body[pos] == '\n') pos++;
+
+		// Find next delimiter
+		size_t nextPos = body.find(delimiter, pos);
+		if (nextPos == std::string::npos) {
+			break;
+		}
+
+		// Extract part
+		std::string part = body.substr(pos, nextPos - pos);
+
+		// Split headers and content
+		size_t headerEnd = part.find("\r\n\r\n");
+		if (headerEnd == std::string::npos) {
+			headerEnd = part.find("\n\n");
+			if (headerEnd == std::string::npos) {
+				continue;
+			}
+			headerEnd += 2;
+		} else {
+			headerEnd += 4;
+		}
+
+		std::string headers = part.substr(0, headerEnd);
+		std::string content = part.substr(headerEnd);
+
+		// Remove trailing \r\n from content
+		if (content.length() >= 2 && content[content.length() - 2] == '\r') {
+			content = content.substr(0, content.length() - 2);
+		} else if (content.length() >= 1 && content[content.length() - 1] == '\n') {
+			content = content.substr(0, content.length() - 1);
+		}
+
+		// Parse headers to extract filename and content-type
+		std::string filename;
+		std::string contentType = "application/octet-stream";
+
+		std::istringstream headerStream(headers);
+		std::string headerLine;
+		while (std::getline(headerStream, headerLine)) {
+			// Remove \r
+			if (!headerLine.empty() && headerLine[headerLine.length() - 1] == '\r') {
+				headerLine = headerLine.substr(0, headerLine.length() - 1);
+			}
+
+			// Look for Content-Disposition
+			if (headerLine.find("Content-Disposition") != std::string::npos) {
+				size_t fnamePos = headerLine.find("filename=\"");
+				if (fnamePos != std::string::npos) {
+					fnamePos += 10; // length of 'filename="'
+					size_t fnameEnd = headerLine.find("\"", fnamePos);
+					if (fnameEnd != std::string::npos) {
+						filename = headerLine.substr(fnamePos, fnameEnd - fnamePos);
+					}
+				}
+			}
+
+			// Look for Content-Type
+			if (headerLine.find("Content-Type:") != std::string::npos) {
+				size_t ctPos = headerLine.find(":") + 1;
+				contentType = headerLine.substr(ctPos);
+				// Trim whitespace
+				while (!contentType.empty() && std::isspace(contentType[0])) {
+					contentType = contentType.substr(1);
+				}
+			}
+		}
+
+		// Only save if we have a filename
+		if (!filename.empty()) {
+			UploadedFile file;
+			file.filename = filename;
+			file.contentType = contentType;
+			file.content = content;
+			files.push_back(file);
+
+			Logger::debug << "Parsed file: " << filename << " (" << content.length() << " bytes)" << std::endl;
+		}
+
+		pos = nextPos;
+	}
+
+	return files;
 }
 
 // Error responses

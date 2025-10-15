@@ -6,6 +6,8 @@
 #include "includes/Settings.hpp"
 #include "includes/Instance.hpp"
 #include <sstream>
+#include <ctime>
+#include <iomanip>
 
 namespace HTTP {
 
@@ -13,7 +15,8 @@ namespace HTTP {
 Response::Response()
 	: _statusCode(200)
 	, _statusMessage("OK")
-	, _body("") {
+	, _body("")
+	, _chunked(false) {
 }
 
 Response::~Response() {}
@@ -44,15 +47,40 @@ void Response::setContentLength(size_t length) {
 	setHeader("Content-Length", oss.str());
 }
 
+void Response::setLastModified(time_t mtime) {
+	setHeader("Last-Modified", formatHttpDate(mtime));
+}
+
+void Response::setETag(const std::string& etag) {
+	setHeader("ETag", "\"" + etag + "\"");
+}
+
+void Response::setCacheControl(const std::string& cacheControl) {
+	setHeader("Cache-Control", cacheControl);
+}
+
 // Set body
 void Response::setBody(const std::string& body) {
 	_body = body;
-	setContentLength(_body.length());
+	if (!_chunked) {
+		setContentLength(_body.length());
+	}
 }
 
 void Response::appendBody(const std::string& chunk) {
 	_body += chunk;
-	setContentLength(_body.length());
+	if (!_chunked) {
+		setContentLength(_body.length());
+	}
+}
+
+void Response::setChunked(bool chunked) {
+	_chunked = chunked;
+	if (_chunked) {
+		setHeader("Transfer-Encoding", "chunked");
+		// Remove Content-Length if present (incompatible with chunked)
+		_headers.erase("Content-Length");
+	}
 }
 
 // Set keep-alive
@@ -66,6 +94,10 @@ void Response::setKeepAlive(bool keepAlive) {
 
 // Build response string
 std::string Response::build() const {
+	if (_chunked) {
+		return buildChunkedResponse();
+	}
+
 	std::ostringstream response;
 
 	// Status line
@@ -88,6 +120,35 @@ std::string Response::build() const {
 	return response.str();
 }
 
+// Build chunked response
+std::string Response::buildChunkedResponse() const {
+	std::ostringstream response;
+
+	// Status line
+	response << "HTTP/1.1 " << _statusCode << " " << _statusMessage << "\r\n";
+
+	// Headers (Transfer-Encoding: chunked already set)
+	for (std::map<std::string, std::string>::const_iterator it = _headers.begin();
+	     it != _headers.end(); ++it) {
+		response << it->first << ": " << it->second << "\r\n";
+	}
+
+	// Empty line separating headers from body
+	response << "\r\n";
+
+	// Chunked body
+	if (!_body.empty()) {
+		// Send body in chunks (we'll send it all as one chunk for simplicity)
+		response << std::hex << _body.length() << "\r\n";
+		response << _body << "\r\n";
+	}
+
+	// Last chunk (size 0)
+	response << "0\r\n\r\n";
+
+	return response.str();
+}
+
 // Getters
 int Response::getStatusCode() const {
 	return _statusCode;
@@ -101,6 +162,14 @@ const std::string& Response::getBody() const {
 std::string Response::getStatusMessage(int code) const {
 	Settings* settings = Instance::Get<Settings>();
 	return settings->httpStatusCode(code);
+}
+
+// Format time as HTTP date (RFC 7231)
+std::string Response::formatHttpDate(time_t time) const {
+	char buffer[128];
+	struct tm* tm_info = gmtime(&time);
+	strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", tm_info);
+	return std::string(buffer);
 }
 
 // Common responses
@@ -158,6 +227,7 @@ void Response::clear() {
 	_statusMessage = "OK";
 	_headers.clear();
 	_body.clear();
+	_chunked = false;
 }
 
 } // namespace HTTP
