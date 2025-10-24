@@ -5,10 +5,10 @@ FLAGS		= -Wall -Wextra -Werror -std=c++98 -I.
 RM			= rm -rf
 
 OBJDIR		= .objFiles
-FILES		= webserv \
-			  src/utils/misc src/utils/Logger \
+FILES		= src/webserv \
+			  src/utils/Logger \
 			  src/core/Instance src/core/Settings \
-			  src/config/Yaml src/config/Config src/config/Server src/config/Route src/config/ConfigParser \
+			  src/config/Config src/config/Server src/config/Route src/config/ConfigParser \
 			  src/network/Socket src/network/Connection \
 			  src/http/ServerManager src/http/Request src/http/Response src/http/RequestHandler \
 			  src/cgi/CGIExecutor

@@ -4,18 +4,13 @@
  */
 #include "includes/core/Settings.hpp"
 
-// Static path definition
-const char* Settings::path = "config/settings.yaml";
-
-Settings::Settings() : config(YAML::LoadFile(path)) {
-    // Constructor loads the YAML configuration file
-    // The config member is initialized with the loaded YAML
+Settings::Settings() {
+    // Constructor - settings are hard-coded
 }
 
 bool Settings::isValid() const {
-    // For now, always return true to allow the program to continue
-    // In a real implementation, this would check if config was loaded properly
-    return true; // config.isValid();
+    // Always valid (hard-coded settings)
+    return true;
 }
 
 const std::string Settings::httpStatusCode(int code) const {

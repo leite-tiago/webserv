@@ -4,10 +4,9 @@
  */
 #pragma once
 
-#include <memory>
-#include <typeinfo>
 #include <map>
 #include <cstddef>
+#include <typeinfo>
 
 class Instance {
 private:
@@ -32,17 +31,5 @@ public:
         T* instance = new T();
         instances_[type_hash] = instance;
         return instance;
-    }
-
-    /**
-     * Cleanup all instances (for proper shutdown)
-     */
-    static void Cleanup() {
-        // Note: This is a simplified cleanup
-        // In a real implementation, you'd need proper type-aware cleanup
-        for (std::map<std::size_t, void*>::iterator it = instances_.begin(); it != instances_.end(); ++it) {
-            delete static_cast<char*>(it->second);
-        }
-        instances_.clear();
     }
 };

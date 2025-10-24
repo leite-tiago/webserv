@@ -4,7 +4,6 @@
  */
 #include "includes/config/ConfigParser.hpp"
 #include "includes/utils/Logger.hpp"
-#include "includes/utils/Utils.hpp"
 #include <iostream>
 #include <sstream>
 #include <cstdlib>
