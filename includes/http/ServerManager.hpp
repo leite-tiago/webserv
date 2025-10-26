@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ServerManager.hpp                                  :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: tborges- <tborges-@student.42lisboa.com    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/26 17:40:30 by tborges-          #+#    #+#             */
+/*   Updated: 2025/10/26 17:40:31 by tborges-         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 /**
  * ServerManager.hpp
  * HTTP Server Manager class for handling web server operations
