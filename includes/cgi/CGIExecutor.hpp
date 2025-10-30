@@ -6,7 +6,7 @@
 /*   By: tborges- <tborges-@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/26 17:40:46 by tborges-          #+#    #+#             */
-/*   Updated: 2025/10/26 17:40:47 by tborges-         ###   ########.fr       */
+/*   Updated: 2025/10/30 22:51:40 by tborges-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,8 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <sys/types.h>
+#include <unistd.h>
 
 // Forward declarations
 namespace HTTP {
