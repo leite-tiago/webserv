@@ -1,10 +1,22 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Response.cpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: tborges- <tborges-@student.42lisboa.com    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/26 17:38:40 by tborges-          #+#    #+#             */
+/*   Updated: 2025/10/26 17:38:41 by tborges-         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 /**
  * Response.cpp
  * Implementation of HTTP Response builder
  */
 #include "includes/http/Response.hpp"
-#include "includes/Settings.hpp"
-#include "includes/Instance.hpp"
+#include "includes/core/Settings.hpp"
+#include "includes/core/Instance.hpp"
 #include <sstream>
 #include <ctime>
 #include <iomanip>

@@ -1,10 +1,23 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   RequestHandler.cpp                                 :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: tborges- <tborges-@student.42lisboa.com    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/26 17:38:38 by tborges-          #+#    #+#             */
+/*   Updated: 2025/10/26 17:38:39 by tborges-         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 /**
  * RequestHandler.cpp
  * Implementation of HTTP Request Handler
  */
 #include "includes/http/RequestHandler.hpp"
-#include "includes/Settings.hpp"
-#include "includes/Instance.hpp"
+#include "includes/cgi/CGIExecutor.hpp"
+#include "includes/core/Settings.hpp"
+#include "includes/core/Instance.hpp"
 #include "includes/utils/Logger.hpp"
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -27,6 +40,13 @@ RequestHandler::~RequestHandler() {}
 // Handle request
 Response RequestHandler::handle(const Request& request) {
 	Logger::info << "Handling " << request.getMethod() << " " << request.getPath() << std::endl;
+
+	// First, check if method is recognized (GET, POST, DELETE)
+	std::string method = request.getMethod();
+	if (method != "GET" && method != "POST" && method != "DELETE") {
+		Logger::warning << "Unknown method: " << method << std::endl;
+		return notImplemented(method);
+	}
 
 	// Find matching route
 	const Route* route = _server->matchRoute(request.getPath());
@@ -56,7 +76,7 @@ Response RequestHandler::handle(const Request& request) {
 	} else if (request.getMethod() == "DELETE") {
 		return handleDelete(request, route);
 	} else {
-		return methodNotAllowed(request.getMethod());
+		return notImplemented(request.getMethod());
 	}
 }
 
@@ -65,6 +85,29 @@ Response RequestHandler::handleGet(const Request& request, const Route* route) {
 	std::string filePath = resolveFilePath(request.getPath(), route);
 
 	Logger::debug << "Resolved file path: " << filePath << std::endl;
+
+	// Check if CGI is enabled and file extension matches
+	if (route->isCgiEnabled()) {
+		std::string ext = getFileExtension(filePath);
+		std::string cgiExt = route->getCgiExtension();
+
+		// Normalize extensions (add dot if missing)
+		if (!ext.empty() && ext[0] != '.') {
+			ext = "." + ext;
+		}
+		if (!cgiExt.empty() && cgiExt[0] != '.') {
+			cgiExt = "." + cgiExt;
+		}
+
+		if (ext == cgiExt) {
+			// This is a CGI script
+			if (fileExists(filePath)) {
+				return handleCGI(request, route, filePath);
+			} else {
+				return notFound(request.getPath());
+			}
+		}
+	}
 
 	// Check if file exists
 	if (!fileExists(filePath)) {
@@ -91,7 +134,12 @@ Response RequestHandler::handleGet(const Request& request, const Route* route) {
 		// If still a directory, check if autoindex is enabled
 		if (isDirectory(filePath)) {
 			if (route->isDirectoryListingEnabled()) {
-				return Response::errorResponse(200, generateDirectoryListing(filePath, request.getPath()));
+				// Generate directory listing
+				Response response;
+				response.setStatus(200);
+				response.setContentType("text/html");
+				response.setBody(generateDirectoryListing(filePath, request.getPath()));
+				return response;
 			} else {
 				return forbidden("Directory listing is disabled");
 			}
@@ -157,6 +205,46 @@ Response RequestHandler::handleGet(const Request& request, const Route* route) {
 Response RequestHandler::handlePost(const Request& request, const Route* route) {
 	Logger::info << "POST request - Content-Type: " << request.getContentType() << std::endl;
 
+	// Check if this is a CGI request (before other handlers)
+	if (route->isCgiEnabled()) {
+		// Check if file extension matches CGI extension
+		std::string path = resolveFilePath(request.getPath(), route);
+		std::string ext = getFileExtension(path);
+		std::string cgiExt = route->getCgiExtension();
+
+		// Normalize extensions (add dot if missing)
+		if (!ext.empty() && ext[0] != '.') {
+			ext = "." + ext;
+		}
+		if (!cgiExt.empty() && cgiExt[0] != '.') {
+			cgiExt = "." + cgiExt;
+		}
+
+		if (ext == cgiExt) {
+			// This is a CGI script
+			if (fileExists(path)) {
+				return handleCGI(request, route, path);
+			} else {
+				return notFound(request.getPath());
+			}
+		}
+	}
+
+	// Check if this is a POST to a static file (should return 405)
+	// Do this check BEFORE handling form data or other generic handlers
+	std::string resolvedPath = resolveFilePath(request.getPath(), route);
+	if (fileExists(resolvedPath) && !isDirectory(resolvedPath)) {
+		// This is an existing file - check if it's a static file
+		std::string ext = getFileExtension(resolvedPath);
+		// Common static file extensions
+		if (ext == "html" || ext == "htm" || ext == "css" || ext == "js" ||
+		    ext == "jpg" || ext == "jpeg" || ext == "png" || ext == "gif" ||
+		    ext == "txt" || ext == "pdf" || ext == "ico") {
+			// This is a static file with no POST handler (not CGI, not upload)
+			return methodNotAllowed(request.getMethod());
+		}
+	}
+
 	// Check if upload is enabled for multipart/form-data
 	if (request.isMultipart()) {
 		if (route->isUploadEnabled()) {
@@ -169,13 +257,6 @@ Response RequestHandler::handlePost(const Request& request, const Route* route) 
 	// Handle application/x-www-form-urlencoded
 	if (request.getContentType().find("application/x-www-form-urlencoded") != std::string::npos) {
 		return handleFormData(request, route);
-	}
-
-	// Check if CGI is enabled
-	if (route->isCgiEnabled()) {
-		// TODO: Implement CGI
-		Logger::info << "CGI execution requested (not yet implemented)" << std::endl;
-		return Response::errorResponse(501, "CGI not yet implemented");
 	}
 
 	// Simple POST response (generic body received)
@@ -341,11 +422,17 @@ std::string RequestHandler::resolveFilePath(const std::string& requestPath, cons
 	std::string root = route->getRoot();
 	std::string routePath = route->getPath();
 
+	Logger::debug << "resolveFilePath: requestPath='" << requestPath
+	              << "', root='" << root
+	              << "', routePath='" << routePath << "'" << std::endl;
+
 	// Remove route prefix from request path
 	std::string relativePath = requestPath;
 	if (relativePath.compare(0, routePath.length(), routePath) == 0) {
 		relativePath = relativePath.substr(routePath.length());
 	}
+
+	Logger::debug << "relativePath after prefix removal: '" << relativePath << "'" << std::endl;
 
 	// Build full path
 	std::string fullPath = root;
@@ -354,6 +441,8 @@ std::string RequestHandler::resolveFilePath(const std::string& requestPath, cons
 		fullPath += "/";
 	}
 	fullPath += relativePath;
+
+	Logger::debug << "Final fullPath: '" << fullPath << "'" << std::endl;
 
 	return fullPath;
 }
@@ -600,6 +689,17 @@ std::vector<RequestHandler::UploadedFile> RequestHandler::parseMultipartData(con
 	return files;
 }
 
+// Handle CGI request
+Response RequestHandler::handleCGI(const Request& request, const Route* route, const std::string& scriptPath) {
+	Logger::info << "Executing CGI script: " << scriptPath << std::endl;
+
+	// Create CGI executor
+	CGI::Executor executor;
+
+	// Execute CGI and get response
+	return executor.execute(request, _server, route, scriptPath);
+}
+
 // Error responses
 Response RequestHandler::notFound(const std::string& path) {
 	return Response::errorResponse(404, "The requested URL " + path + " was not found on this server.");
@@ -611,6 +711,10 @@ Response RequestHandler::forbidden(const std::string& message) {
 
 Response RequestHandler::methodNotAllowed(const std::string& method) {
 	return Response::errorResponse(405, "Method " + method + " is not allowed for this resource.");
+}
+
+Response RequestHandler::notImplemented(const std::string& method) {
+	return Response::errorResponse(501, "Method " + method + " is not implemented.");
 }
 
 Response RequestHandler::internalServerError(const std::string& message) {

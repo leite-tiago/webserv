@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   RequestHandler.hpp                                 :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: tborges- <tborges-@student.42lisboa.com    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/26 17:40:25 by tborges-          #+#    #+#             */
+/*   Updated: 2025/10/26 17:40:26 by tborges-         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 /**
  * RequestHandler.hpp
  * Handles HTTP requests and generates responses
@@ -6,8 +18,8 @@
 
 #include "Request.hpp"
 #include "Response.hpp"
-#include "../Server.hpp"
-#include "../Route.hpp"
+#include "includes/config/Server.hpp"
+#include "includes/config/Route.hpp"
 
 namespace HTTP {
 
@@ -42,6 +54,7 @@ private:
 	// POST helpers
 	Response handleFormData(const Request& request, const Route* route);
 	Response handleFileUpload(const Request& request, const Route* route);
+	Response handleCGI(const Request& request, const Route* route, const std::string& scriptPath);
 	std::string saveUploadedFile(const std::string& content, const std::string& filename, const std::string& uploadDir);
 
 	// Multipart parsing
@@ -56,6 +69,7 @@ private:
 	Response notFound(const std::string& path);
 	Response forbidden(const std::string& path);
 	Response methodNotAllowed(const std::string& method);
+	Response notImplemented(const std::string& method);
 	Response internalServerError(const std::string& message);
 };
 

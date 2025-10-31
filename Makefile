@@ -1,3 +1,15 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    Makefile                                           :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: tborges- <tborges-@student.42lisboa.com    +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2025/10/26 17:38:15 by tborges-          #+#    #+#              #
+#    Updated: 2025/10/26 17:38:16 by tborges-         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
 NAME		= webserv
 
 CC			= c++
@@ -5,10 +17,13 @@ FLAGS		= -Wall -Wextra -Werror -std=c++98 -I.
 RM			= rm -rf
 
 OBJDIR		= .objFiles
-FILES		= webserv src/utils/misc src/Instance src/Settings src/Logger src/Yaml \
-			  src/Config src/Server src/Route src/ConfigParser \
-			  src/Socket src/Connection src/ServerManager \
-			  src/http/Request src/http/Response src/http/RequestHandler
+FILES		= src/webserv \
+			  src/utils/Logger \
+			  src/core/Instance src/core/Settings \
+			  src/config/Config src/config/Server src/config/Route src/config/ConfigParser \
+			  src/network/Socket src/network/Connection \
+			  src/http/ServerManager src/http/Request src/http/Response src/http/RequestHandler \
+			  src/cgi/CGIExecutor
 SRC			= $(FILES:=.cpp)
 OBJ			= $(addprefix $(OBJDIR)/, $(FILES:=.o))
 HEADER		= includes/webserv.hpp

@@ -2,192 +2,468 @@
 
 > *"This is when you finally understand why URLs start with HTTP"*
 
-## Summary
+A custom HTTP/1.1 web server implementation written in C++98, capable of serving static websites, handling file uploads, processing CGI scripts, and managing multiple virtual hosts.
 
-This project is about writing your own HTTP server. You will be able to test it with an actual browser.
+[![42 Project](https://img.shields.io/badge/42-Lisboa-blue)](https://www.42lisboa.com/)
+[![C++98](https://img.shields.io/badge/C++-98-blue.svg)](https://en.cppreference.com/w/cpp/98)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-HTTP is one of the most widely used protocols on the internet. Understanding its intricacies will be useful, even if you won't be working on a website.
+## 📋 Table of Contents
 
-**Version:** 21.4
+- [About](#-about)
+- [Features](#-features)
+- [Requirements](#-requirements)
+- [Installation](#-installation)
+- [Usage](#-usage)
+- [Configuration](#-configuration)
+- [Testing](#-testing)
+- [Project Structure](#-project-structure)
+- [Implementation Details](#-implementation-details)
+- [Examples](#-examples)
+- [Troubleshooting](#-troubleshooting)
+- [Resources](#-resources)
+- [Authors](#-authors)
 
-## Table of Contents
+## 🌐 About
 
-- [I. Introduction](#i-introduction)
-- [II. General Rules](#ii-general-rules)
-- [III. Mandatory Part](#iii-mandatory-part)
-  - [III.1 Requirements](#iii1-requirements)
-  - [III.2 For MacOS only](#iii2-for-macos-only)
-  - [III.3 Configuration file](#iii3-configuration-file)
-- [IV. Bonus Part](#iv-bonus-part)
-- [V. Submission and Peer-evaluation](#v-submission-and-peer-evaluation)
+Webserv is a 42 School project that challenges students to build an HTTP server from scratch. The server implements core HTTP/1.1 functionality, including:
 
----
+- Non-blocking I/O using `poll()` (or equivalent)
+- Multiple virtual hosts and port binding
+- Static file serving with directory listing
+- File upload and deletion
+- CGI execution (Python, PHP, etc.)
+- Custom error pages
+- HTTP redirections
 
-## I. Introduction
+This project provides deep insights into how web servers work, network programming, and the HTTP protocol.
 
-The Hypertext Transfer Protocol (HTTP) is an application protocol for distributed, collaborative, hypermedia information systems.
+## ✨ Features
 
-HTTP is the foundation of data communication for the World Wide Web, where hypertext documents include hyperlinks to other resources that the user can easily access. For example, by clicking a mouse button or tapping the screen on a web browser.
+### Core HTTP Functionality
+- ✅ **HTTP/1.1 Protocol** - Full implementation of GET, POST, and DELETE methods
+- ✅ **Non-blocking I/O** - Uses `poll()`/`epoll`/`kqueue` for efficient connection handling
+- ✅ **Persistent Connections** - Keep-alive support
+- ✅ **Chunked Transfer Encoding** - Handles chunked requests and responses
 
-HTTP was developed to support hypertext functionality and the growth of the World Wide Web.
+### Server Configuration
+- ✅ **Multiple Virtual Hosts** - Host multiple websites on different domains/ports
+- ✅ **Multiple Ports** - Listen on multiple ports simultaneously
+- ✅ **Custom Error Pages** - Define custom 404, 500, etc. error pages
+- ✅ **Request Size Limits** - Configure maximum client body size
+- ✅ **Directory Listing** - Optional autoindex feature
 
-The primary function of a web server is to store, process, and deliver web pages to clients. Client-server communication occurs through the Hypertext Transfer Protocol (HTTP). Pages delivered are most frequently HTML documents, which may include images, style sheets, and scripts in addition to the text content.
+### Routing & File Handling
+- ✅ **Static File Serving** - Serve HTML, CSS, JS, images, and other static content
+- ✅ **File Uploads** - Handle multipart/form-data file uploads
+- ✅ **File Deletion** - DELETE method support
+- ✅ **HTTP Redirections** - Configure URL redirects
+- ✅ **Index Files** - Automatic serving of index.html
 
-Multiple web servers may be used for a high-traffic website.
+### CGI Support
+- ✅ **CGI Execution** - Execute Python, PHP, and other CGI scripts
+- ✅ **Environment Variables** - Full CGI environment setup
+- ✅ **POST/GET Support** - Handle form submissions via CGI
 
-A user agent, commonly a web browser or web crawler, initiates communication by requesting a specific resource using HTTP, and the server responds with the content of that resource or an error message if unable to do so. The resource is typically a real file on the server's secondary storage, but this is not always the case and depends on how the webserver is implemented.
+### Browser Compatibility
+- ✅ **Modern Browsers** - Compatible with Chrome, Firefox, Safari, etc.
+- ✅ **NGINX-like Behavior** - Configuration and behavior inspired by NGINX
 
-Although its primary function is to serve content, HTTP also enables clients to send data. This feature is used for submitting web forms, including the uploading of files.
+## 📦 Requirements
 
----
+### System Requirements
+- **OS**: Linux, macOS, or other UNIX-like system
+- **Compiler**: g++ or clang++ with C++98 support
+- **Make**: GNU Make
 
-## II. General Rules
+### Optional (for CGI)
+- Python 3.x (for Python CGI scripts)
+- PHP-CGI (for PHP CGI scripts)
 
-- Your program **must not crash** under any circumstances (even if it runs out of memory) or terminate unexpectedly.
-  > ⚠️ If this occurs, your project will be considered non-functional and your grade will be **0**.
+## 🚀 Installation
 
-- You must submit a **Makefile** that compiles your source files. It must not perform unnecessary relinking.
-
-- Your Makefile must at least contain the rules: `$(NAME)`, `all`, `clean`, `fclean` and `re`.
-
-- Compile your code with `c++` and the flags `-Wall -Wextra -Werror`
-
-- Your code must comply with the **C++ 98 standard** and should still compile when adding the flag `-std=c++98`.
-
-- Make sure to leverage as many C++ features as possible (e.g., choose `<cstring>` over `<string.h>`). You are allowed to use C functions, but always prefer their C++ versions if possible.
-
-- Any external library and **Boost libraries are forbidden**.
-
----
-
-## III. Mandatory Part
-
-### Project Details
-
-| Field | Value |
-|-------|-------|
-| **Program name** | webserv |
-| **Turn in files** | Makefile, *.{h, hpp}, *.cpp, *.tpp, *.ipp, configuration files |
-| **Makefile** | NAME, all, clean, fclean, re |
-| **Arguments** | [A configuration file] |
-| **External functs.** | execve, pipe, strerror, gai_strerror, errno, dup, dup2, fork, socketpair, htons, htonl, ntohs, ntohl, select, poll, epoll (epoll_create, epoll_ctl, epoll_wait), kqueue (kqueue, kevent), socket, accept, listen, send, recv, chdir, bind, connect, getaddrinfo, freeaddrinfo, setsockopt, getsockname, getprotobyname, fcntl, close, read, write, waitpid, kill, signal, access, stat, open, opendir, readdir and closedir. |
-| **Libft authorized** | n/a |
-| **Description** | An HTTP server in C++ 98 |
-
-### Usage
-
+1. **Clone the repository**
 ```bash
-./webserv [configuration file]
+git clone https://github.com/leite-tiago/webserv.git
+cd webserv
 ```
 
-> 📝 **Note:** Even though `poll()` is mentioned in the subject and grading criteria, you can use any equivalent function such as `select()`, `kqueue()`, or `epoll()`.
+2. **Compile the project**
+```bash
+make
+```
 
-> 📚 **Important:** Please read the RFC and perform tests with telnet and NGINX before starting this project. Although you are not required to implement the entire RFC, reading it will help you develop the required features.
+This will create the `webserv` executable.
 
-### III.1 Requirements
+3. **Clean build files** (optional)
+```bash
+make clean    # Remove object files
+make fclean   # Remove object files and executable
+make re       # Rebuild from scratch
+```
 
-- Your program must take a **configuration file** as an argument, or use a default path.
+## 💻 Usage
 
-- You **cannot execve** another web server.
+### Basic Usage
 
-- Your server must remain **non-blocking** at all times and properly handle client disconnections when necessary.
+Run the server with the default configuration:
+```bash
+./webserv
+```
 
-- It must be non-blocking and use only **1 poll()** (or equivalent) for all the I/O operations between the client and the server (listen included).
+Run with a custom configuration file:
+```bash
+./webserv config/default.conf
+```
 
-- `poll()` (or equivalent) must monitor both **reading and writing** simultaneously.
+### Accessing the Server
 
-- You must **never do a read or a write operation** without going through `poll()` (or equivalent).
+Once running, open your browser and navigate to:
+```
+http://localhost:8080
+```
 
-- Checking the value of `errno` is **strictly forbidden** after performing a read or write operation.
+### Testing with curl
 
-- You are **not required to use poll()** (or equivalent) before reading your configuration file.
+```bash
+# GET request
+curl http://localhost:8080/
 
-> ⚠️ **Critical:** Because you have to use non-blocking file descriptors, it is possible to use read/recv or write/send functions with no poll() (or equivalent), and your server wouldn't be blocking. But it would consume more system resources. Thus, if you attempt to read/recv or write/send on any file descriptor without using poll() (or equivalent), your grade will be **0**.
+# POST request with file upload
+curl -X POST -F "file=@test.txt" http://localhost:8080/upload
 
-- You can use every macro and define like `FD_SET`, `FD_CLR`, `FD_ISSET` and `FD_ZERO` (understanding what they do and how they work is very useful).
+# DELETE request
+curl -X DELETE http://localhost:8080/uploads/test.txt
+```
 
-- A request to your server should **never hang indefinitely**.
+### Stopping the Server
 
-- Your server must be compatible with **standard web browsers** of your choice.
+Press `Ctrl+C` to gracefully stop the server.
 
-- We will consider that **NGINX is HTTP 1.1 compliant** and may be used to compare headers and answer behaviors.
+## ⚙️ Configuration
 
-- Your **HTTP response status codes** must be accurate.
+The server uses a configuration file with NGINX-like syntax. See `config/default.conf` for a complete example.
 
-- Your server must have **default error pages** if none are provided.
+### Basic Server Block
 
-- You **can't use fork** for anything other than CGI (like PHP, or Python, and so forth).
+```nginx
+server {
+    listen 8080;
+    host 127.0.0.1;
+    server_name localhost;
 
-- You must be able to serve a **fully static website**.
+    client_max_body_size 10M;
 
-- Clients must be able to **upload files**.
+    error_page 404 /errors/404.html;
+    error_page 500 /errors/500.html;
 
-- You need at least the **GET, POST, and DELETE** methods.
+    location / {
+        root ./www;
+        index index.html;
+        allow_methods GET POST;
+        autoindex off;
+    }
+}
+```
 
-- **Stress test** your server to ensure it remains available at all times.
+### Configuration Directives
 
-- Your server must be able to **listen to multiple ports** (see Configuration file).
+#### Server Context
 
-### III.2 For MacOS only
+| Directive | Description | Example |
+|-----------|-------------|---------|
+| `listen` | Port to listen on | `listen 8080;` |
+| `host` | IP address to bind to | `host 127.0.0.1;` |
+| `server_name` | Virtual host names | `server_name localhost example.com;` |
+| `client_max_body_size` | Maximum request body size | `client_max_body_size 10M;` |
+| `error_page` | Custom error pages | `error_page 404 /404.html;` |
 
-Since macOS handles `write()` differently from other Unix-based OSes, you are allowed to use `fcntl()`.
+#### Location Context
 
-You must use file descriptors in **non-blocking mode** to achieve behavior similar to that of other Unix OSes.
+| Directive | Description | Example |
+|-----------|-------------|---------|
+| `root` | Root directory for requests | `root ./www;` |
+| `index` | Default index file | `index index.html;` |
+| `allow_methods` | Allowed HTTP methods | `allow_methods GET POST DELETE;` |
+| `autoindex` | Directory listing | `autoindex on;` |
+| `return` | HTTP redirect | `return http://example.com;` |
+| `upload_enable` | Enable file uploads | `upload_enable on;` |
+| `upload_path` | Upload directory | `upload_path ./uploads;` |
+| `cgi_pass` | CGI interpreter path | `cgi_pass /usr/bin/python3;` |
+| `cgi_ext` | CGI file extension | `cgi_ext .py;` |
 
-However, you are allowed to use `fcntl()` only with the following flags:
-- `F_SETFL`
-- `O_NONBLOCK`
-- `FD_CLOEXEC`
+### Multiple Servers Example
 
-> ⚠️ **Any other flag is forbidden.**
+```nginx
+# Main website
+server {
+    listen 8080;
+    host 127.0.0.1;
+    server_name localhost;
 
-### III.3 Configuration file
+    location / {
+        root ./www;
+        index index.html;
+        allow_methods GET POST;
+    }
+}
 
-> 💡 You can take inspiration from the 'server' section of the **NGINX configuration file**.
+# API server
+server {
+    listen 8081;
+    host 127.0.0.1;
+    server_name api.local;
 
-In the configuration file, you should be able to:
+    location / {
+        root ./api;
+        allow_methods GET POST DELETE;
+    }
+}
+```
 
-#### Server Configuration
-- ✅ Choose the **port and host** of each 'server'
-- ✅ Set up the **server_names** or not
-- ✅ The first server for a host:port will be the **default** for this host:port (meaning it will respond to all requests that do not belong to another server)
-- ✅ Set up **default error pages**
-- ✅ Set the **maximum allowed size** for client request bodies
+## 🧪 Testing
 
-#### Route Configuration
-Set up routes with one or multiple of the following rules/configurations (routes won't be using regexp):
+The project includes several testing utilities in the `tests/` directory.
 
-- ✅ Define a **list of accepted HTTP methods** for the route
-- ✅ Define an **HTTP redirect**
-- ✅ Define a **directory or file** where the requested file should be located
-  - Example: if url `/kapouet` is rooted to `/tmp/www`, url `/kapouet/pouic/toto/pouet` is `/tmp/www/pouic/toto/pouet`
-- ✅ **Enable or disable directory listing**
-- ✅ Set a **default file** to serve when the request is for a directory
-- ✅ **Execute CGI** based on certain file extension (for example `.php`)
-- ✅ Make it work with **POST and GET methods**
-- ✅ Allow the route to **accept uploaded files** and configure where they should be saved
+### Quick Start Tests
 
-#### CGI Information
+```bash
+cd tests
+./run_tests.sh
+```
 
-> 🤔 **Do you wonder what a CGI is?**
+### Feature Tests
 
-- Because you won't call the CGI directly, use the **full path as PATH_INFO**
-- Just remember that, for **chunked requests**, your server needs to unchunk them, the CGI will expect EOF as the end of the body
-- The same applies to the **output of the CGI**. If no content_length is returned from the CGI, EOF will mark the end of the returned data
-- Your program should call the CGI with the **file requested as the first argument**
-- The CGI should be run in the **correct directory** for relative path file access
-- Your server should support **at least one CGI** (php-CGI, Python, and so forth)
+Test specific features:
+```bash
+./test_feature.sh GET
+./test_feature.sh POST
+./test_feature.sh DELETE
+./test_feature.sh CGI
+```
 
-#### Testing Requirements
+### Stress Tests
 
-You must provide **configuration files and default files** to test and demonstrate that every feature works during the evaluation.
+Test server stability under load:
+```bash
+./stress_tests.sh
+```
 
-> 📖 **Tip:** If you have a question about a specific behavior, you should compare your program's behavior with **NGINX's**. For example, check how the server_name works.
+### Manual Testing with curl
 
-> 🧪 **Testing:** We have provided a small tester. Using it is not mandatory if everything works fine with your browser and tests, but it can help you find and fix bugs.
+See `tests/CURL_EXAMPLES.md` for detailed curl examples.
 
-> 🔥 **Resilience is key.** Your server must remain operational at all times.
+### Browser Testing
 
-> 💻 **Testing Advice:** Do not test with only one program. Write your tests in a more suitable language, such as **Python or Golang**, among others, even in C or C++ if you prefer.
+1. Start the server: `./webserv`
+2. Open `http://localhost:8080/test_form.html`
+3. Test file uploads, form submissions, etc.
+
+## 📁 Project Structure
+
+```
+webserv/
+├── includes/           # Header files
+│   ├── webserv.hpp    # Main header with includes
+│   ├── config/        # Configuration parsing
+│   ├── core/          # Core server components
+│   ├── http/          # HTTP protocol implementation
+│   ├── network/       # Socket and connection handling
+│   ├── cgi/           # CGI execution
+│   └── utils/         # Utilities (logging, etc.)
+├── src/               # Source files
+│   ├── webserv.cpp    # Main entry point
+│   ├── config/        # Configuration implementation
+│   ├── core/          # Core implementation
+│   ├── http/          # HTTP implementation
+│   ├── network/       # Network implementation
+│   ├── cgi/           # CGI implementation
+│   └── utils/         # Utilities implementation
+├── config/            # Configuration files
+│   ├── default.conf   # Default server configuration
+│   └── cgi.conf       # CGI-focused configuration
+├── www/               # Web root directory
+│   ├── index.html     # Main page
+│   ├── errors/        # Error pages
+│   └── cgi-bin/       # CGI scripts
+├── tests/             # Testing utilities
+├── uploads/           # Upload directory
+├── Makefile           # Build configuration
+└── README.md          # This file
+```
+
+## 🔧 Implementation Details
+
+### Architecture
+
+The server follows a modular architecture:
+
+1. **Core Layer** (`core/`)
+   - `Instance`: Main server instance and event loop
+   - `Settings`: Global server settings
+
+2. **Network Layer** (`network/`)
+   - `Socket`: Socket creation and binding
+   - `Connection`: Client connection management
+
+3. **HTTP Layer** (`http/`)
+   - `ServerManager`: Manages multiple virtual servers
+   - `Request`: HTTP request parsing
+   - `Response`: HTTP response generation
+   - `RequestHandler`: Routes requests to appropriate handlers
+
+4. **Configuration Layer** (`config/`)
+   - `ConfigParser`: Parses configuration files
+   - `Config`: Global configuration
+   - `Server`: Server block configuration
+   - `Route`: Location block configuration
+
+5. **CGI Layer** (`cgi/`)
+   - `CGIExecutor`: Executes CGI scripts with proper environment
+
+### Key Technical Decisions
+
+- **Non-blocking I/O**: All file descriptors are set to non-blocking mode
+- **poll() Event Loop**: Single `poll()` call handles all I/O operations
+- **State Machine**: Connection handling uses state machines for request/response processing
+- **Memory Management**: RAII principles, no memory leaks
+- **Error Handling**: Comprehensive error handling without relying on `errno` after read/write
+
+### HTTP Methods Implementation
+
+#### GET
+- Serves static files from configured root directory
+- Supports range requests
+- Directory listing when autoindex is enabled
+
+#### POST
+- Handles multipart/form-data for file uploads
+- Processes application/x-www-form-urlencoded forms
+- Supports chunked transfer encoding
+- CGI execution for dynamic content
+
+#### DELETE
+- Removes files from configured upload directories
+- Returns appropriate status codes
+
+## 📚 Examples
+
+### Example 1: Simple Static Website
+
+1. Create your HTML files in `www/`
+2. Configure the server:
+```nginx
+server {
+    listen 8080;
+    location / {
+        root ./www;
+        index index.html;
+        allow_methods GET;
+    }
+}
+```
+3. Run: `./webserv config.conf`
+
+### Example 2: File Upload Service
+
+1. Create upload directory: `mkdir -p www/uploads`
+2. Configure:
+```nginx
+location /upload {
+    root ./www/uploads;
+    allow_methods GET POST DELETE;
+    upload_enable on;
+    upload_path ./www/uploads;
+    autoindex on;
+}
+```
+3. Access: `http://localhost:8080/test_form.html`
+
+### Example 3: Python CGI
+
+1. Create a Python script in `www/cgi-bin/hello.py`:
+```python
+#!/usr/bin/env python3
+print("Content-Type: text/html")
+print()
+print("<h1>Hello from Python CGI!</h1>")
+```
+
+2. Make it executable: `chmod +x www/cgi-bin/hello.py`
+
+3. Configure:
+```nginx
+location /cgi-bin {
+    root ./www/cgi-bin;
+    allow_methods GET POST;
+    cgi_pass /usr/bin/python3;
+    cgi_ext .py;
+}
+```
+
+4. Access: `http://localhost:8080/cgi-bin/hello.py`
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**Server won't start**
+- Check if the port is already in use: `lsof -i :8080`
+- Verify configuration file syntax
+- Ensure you have permissions to bind to the port
+
+**404 Not Found**
+- Check the `root` directive in your configuration
+- Verify file paths are correct and files exist
+- Check file permissions
+
+**500 Internal Server Error**
+- Check server logs for detailed error messages
+- Verify CGI script has execute permissions
+- Ensure CGI interpreter path is correct
+
+**File Upload Fails**
+- Check `client_max_body_size` setting
+- Verify upload directory exists and is writable
+- Ensure `upload_enable on` is set
+
+**CGI Doesn't Work**
+- Verify CGI script has execute permissions: `chmod +x script.py`
+- Check CGI interpreter path: `which python3`
+- Ensure CGI script has proper shebang line
+- Check script output format (headers + blank line + content)
+
+### Debug Mode
+
+For detailed logging, check the console output when running the server.
+
+## 📖 Resources
+
+### HTTP Protocol
+- [RFC 7230 - HTTP/1.1 Message Syntax and Routing](https://tools.ietf.org/html/rfc7230)
+- [RFC 7231 - HTTP/1.1 Semantics and Content](https://tools.ietf.org/html/rfc7231)
+- [MDN HTTP Documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP)
+
+### CGI
+- [RFC 3875 - The CGI Specification](https://tools.ietf.org/html/rfc3875)
+- [CGI Programming Tutorial](https://www.tutorialspoint.com/python/python_cgi_programming.htm)
+
+### Network Programming
+- [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/)
+- [poll() man page](https://man7.org/linux/man-pages/man2/poll.2.html)
+
+### Reference Implementations
+- [NGINX Documentation](https://nginx.org/en/docs/)
+- [Apache HTTP Server](https://httpd.apache.org/docs/)
+
+## 👥 Authors
+
+- **Tiago Leite** - [@leite-tiago](https://github.com/leite-tiago)
+
+## 📝 License
+
+This project is part of the 42 School curriculum. Feel free to use it for educational purposes.
 
 ---
+
+**Made with ❤️ at 42 Lisboa**

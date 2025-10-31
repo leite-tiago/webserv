@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Logger.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: tborges- <tborges-@student.42lisboa.com    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/26 17:40:16 by tborges-          #+#    #+#             */
+/*   Updated: 2025/10/26 17:40:17 by tborges-         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 /**
  * Logger.hpp
  * Basic logging utility.
@@ -6,7 +18,7 @@
  */
 #pragma once
 
-#include "../webserv.hpp"
+#include "includes/webserv.hpp"
 
 // Colors
 #define RESET	"\033[39m"

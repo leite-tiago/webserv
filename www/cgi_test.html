@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>CGI Test Page - webserv</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #764ba2;
+            margin-top: 30px;
+        }
+        .test-link {
+            display: inline-block;
+            margin: 10px 10px 10px 0;
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+        .test-link:hover {
+            background: #764ba2;
+        }
+        .info {
+            background: #f0f9ff;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            margin: 15px 0;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .form-container {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 CGI Test Page - webserv</h1>
+
+        <div class="info">
+            <strong>✅ Server Status:</strong> Running with CGI support enabled!
+        </div>
+
+        <h2>📋 CGI Test Scripts</h2>
+
+        <p>Click the links below to test CGI execution:</p>
+
+        <a href="/cgi-bin/hello.py" class="test-link">🐍 Simple Python Hello</a>
+        <a href="/cgi-bin/test.py" class="test-link">🔍 Detailed Python Test</a>
+        <a href="/cgi-bin/test.py?name=webserv&version=1.0" class="test-link">📨 Test with Query String</a>
+
+        <h2>📤 POST Request Test</h2>
+
+        <div class="form-container">
+            <h3>Test POST to CGI</h3>
+            <form action="/cgi-bin/test.py" method="POST">
+                <label>Name:</label>
+                <input type="text" name="name" value="João Silva" required>
+
+                <label>Email:</label>
+                <input type="email" name="email" value="joao@example.com" required>
+
+                <label>Message:</label>
+                <textarea name="message" rows="4">Testing POST request to CGI script!</textarea>
+
+                <button type="submit">Send POST Request</button>
+            </form>
+        </div>
+
+        <h2>🧪 Manual Testing with curl</h2>
+
+        <div class="info">
+            <p><strong>GET Request:</strong></p>
+            <code>curl http://localhost:8080/cgi-bin/hello.py</code>
+
+            <p style="margin-top: 15px;"><strong>GET with Query String:</strong></p>
+            <code>curl "http://localhost:8080/cgi-bin/test.py?name=Test&value=123"</code>
+
+            <p style="margin-top: 15px;"><strong>POST Request:</strong></p>
+            <code>curl -X POST http://localhost:8080/cgi-bin/test.py -d "name=João&message=Hello"</code>
+        </div>
+
+        <h2>📚 CGI Implementation Details</h2>
+
+        <div class="info">
+            <p><strong>CGI Executor Features:</strong></p>
+            <ul>
+                <li>✅ <code>fork()</code> + <code>execve()</code> for process execution</li>
+                <li>✅ <code>pipe()</code> for stdin/stdout redirection</li>
+                <li>✅ <code>dup2()</code> for file descriptor manipulation</li>
+                <li>✅ Environment variables (REQUEST_METHOD, QUERY_STRING, etc.)</li>
+                <li>✅ POST body transmission via stdin</li>
+                <li>✅ Response parsing (headers + body)</li>
+                <li>✅ Timeout handling (30 seconds default)</li>
+                <li>✅ Non-blocking I/O</li>
+            </ul>
+        </div>
+
+        <p><a href="/">← Back to Home</a></p>
+    </div>
+</body>
+</html>

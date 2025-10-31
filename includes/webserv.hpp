@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   webserv.hpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: tborges- <tborges-@student.42lisboa.com    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/26 17:40:13 by tborges-          #+#    #+#             */
+/*   Updated: 2025/10/26 17:40:14 by tborges-         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #pragma once
 
 // C++ standard library includes
@@ -8,28 +20,19 @@
 #include <vector>
 #include <map>
 #include <sstream>
-#include <stack>
-#include <stdint.h>
-#include <typeinfo>
-#include <execinfo.h>
-#include <unistd.h>
-#include <iomanip>
-#include <sstream>
 #include <cstring>
 #include <cerrno>
 #include <cstdlib>
 
 // webserv manual includes
-#include "Yaml.hpp"
-#include "shared.hpp"
-#include "utils/Logger.hpp"
-#include "utils/Utils.hpp"
-#include "Instance.hpp"
-#include "Settings.hpp"
-#include "Config.hpp"
-#include "Server.hpp"
-#include "Route.hpp"
-#include "ConfigParser.hpp"
-#include "Socket.hpp"
-#include "Connection.hpp"
-#include "http/ServerManager.hpp"
+#include "includes/utils/Logger.hpp"
+#include "includes/core/Instance.hpp"
+#include "includes/core/Settings.hpp"
+#include "includes/config/Config.hpp"
+#include "includes/config/Server.hpp"
+#include "includes/config/Route.hpp"
+#include "includes/config/ConfigParser.hpp"
+#include "includes/network/Socket.hpp"
+#include "includes/network/Connection.hpp"
+#include "includes/http/ServerManager.hpp"
+#include "includes/cgi/CGIExecutor.hpp"
