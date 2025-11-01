@@ -6,7 +6,7 @@
 /*   By: tborges- <tborges-@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/26 17:38:38 by tborges-          #+#    #+#             */
-/*   Updated: 2025/10/26 17:38:39 by tborges-         ###   ########.fr       */
+/*   Updated: 2025/10/31 20:20:52 by tborges-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -702,22 +702,128 @@ Response RequestHandler::handleCGI(const Request& request, const Route* route, c
 
 // Error responses
 Response RequestHandler::notFound(const std::string& path) {
+	// Check if custom error page is configured
+	std::string errorPage = _server->getErrorPage(404);
+	if (!errorPage.empty()) {
+		// Find matching route to resolve the error page path
+		const Route* route = _server->matchRoute("/");
+		if (route) {
+			std::string errorFilePath = resolveFilePath(errorPage, route);
+			if (fileExists(errorFilePath)) {
+				std::string content = readFile(errorFilePath);
+				if (!content.empty()) {
+					Response response;
+					response.setStatus(404);
+					response.setContentType("text/html");
+					response.setBody(content);
+					response.setKeepAlive(false);
+					Logger::info << "Serving custom 404 page: " << errorFilePath << std::endl;
+					return response;
+				}
+			}
+		}
+	}
+	// Fallback to generic error page
 	return Response::errorResponse(404, "The requested URL " + path + " was not found on this server.");
 }
 
 Response RequestHandler::forbidden(const std::string& message) {
+	// Check if custom error page is configured
+	std::string errorPage = _server->getErrorPage(403);
+	if (!errorPage.empty()) {
+		const Route* route = _server->matchRoute("/");
+		if (route) {
+			std::string errorFilePath = resolveFilePath(errorPage, route);
+			if (fileExists(errorFilePath)) {
+				std::string content = readFile(errorFilePath);
+				if (!content.empty()) {
+					Response response;
+					response.setStatus(403);
+					response.setContentType("text/html");
+					response.setBody(content);
+					response.setKeepAlive(false);
+					Logger::info << "Serving custom 403 page: " << errorFilePath << std::endl;
+					return response;
+				}
+			}
+		}
+	}
+	// Fallback to generic error page
 	return Response::errorResponse(403, message);
 }
 
 Response RequestHandler::methodNotAllowed(const std::string& method) {
+	// Check if custom error page is configured
+	std::string errorPage = _server->getErrorPage(405);
+	if (!errorPage.empty()) {
+		const Route* route = _server->matchRoute("/");
+		if (route) {
+			std::string errorFilePath = resolveFilePath(errorPage, route);
+			if (fileExists(errorFilePath)) {
+				std::string content = readFile(errorFilePath);
+				if (!content.empty()) {
+					Response response;
+					response.setStatus(405);
+					response.setContentType("text/html");
+					response.setBody(content);
+					response.setKeepAlive(false);
+					Logger::info << "Serving custom 405 page: " << errorFilePath << std::endl;
+					return response;
+				}
+			}
+		}
+	}
+	// Fallback to generic error page
 	return Response::errorResponse(405, "Method " + method + " is not allowed for this resource.");
 }
 
 Response RequestHandler::notImplemented(const std::string& method) {
+	// Check if custom error page is configured
+	std::string errorPage = _server->getErrorPage(501);
+	if (!errorPage.empty()) {
+		const Route* route = _server->matchRoute("/");
+		if (route) {
+			std::string errorFilePath = resolveFilePath(errorPage, route);
+			if (fileExists(errorFilePath)) {
+				std::string content = readFile(errorFilePath);
+				if (!content.empty()) {
+					Response response;
+					response.setStatus(501);
+					response.setContentType("text/html");
+					response.setBody(content);
+					response.setKeepAlive(false);
+					Logger::info << "Serving custom 501 page: " << errorFilePath << std::endl;
+					return response;
+				}
+			}
+		}
+	}
+	// Fallback to generic error page
 	return Response::errorResponse(501, "Method " + method + " is not implemented.");
 }
 
 Response RequestHandler::internalServerError(const std::string& message) {
+	// Check if custom error page is configured
+	std::string errorPage = _server->getErrorPage(500);
+	if (!errorPage.empty()) {
+		const Route* route = _server->matchRoute("/");
+		if (route) {
+			std::string errorFilePath = resolveFilePath(errorPage, route);
+			if (fileExists(errorFilePath)) {
+				std::string content = readFile(errorFilePath);
+				if (!content.empty()) {
+					Response response;
+					response.setStatus(500);
+					response.setContentType("text/html");
+					response.setBody(content);
+					response.setKeepAlive(false);
+					Logger::info << "Serving custom 500 page: " << errorFilePath << std::endl;
+					return response;
+				}
+			}
+		}
+	}
+	// Fallback to generic error page
 	return Response::errorResponse(500, message);
 }
 
